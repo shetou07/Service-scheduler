@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-heading: 'Barlow Condensed', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    /* Theme colors - Dark default */
+    --color-bg-base: #121212;
+    --color-bg-surface: #1c1b1b;
+    --color-bg-subtle: #181818;
+    --color-bg-elevated: #222222;
+    --color-bg-input: #121212;
+    --color-text-base: #e5e2e1;
+    --color-text-heading: #ffffff;
+    --color-text-secondary: #c6c6c7;
+    --color-text-muted: #929090;
+    --color-border: #2a2a2a;
+    --color-border-subtle: #353534;
+    --color-border-input: #353534;
+    --color-header-bg: rgba(18, 18, 18, 0.92);
+    --grid-line-color: rgba(255, 255, 255, 0.04);
+    --scrollbar-track: #121212;
+    --scrollbar-thumb: #2a2a2a;
+  }
+
+  html.light, body.light, .light {
+    /* Theme colors - Light Mode */
+    --color-bg-base: #f4f4f6;
+    --color-bg-surface: #ffffff;
+    --color-bg-subtle: #f9fafb;
+    --color-bg-elevated: #f3f4f6;
+    --color-bg-input: #ffffff;
+    --color-text-base: #1f2937;
+    --color-text-heading: #111827;
+    --color-text-secondary: #4b5563;
+    --color-text-muted: #6b7280;
+    --color-border: #e5e7eb;
+    --color-border-subtle: #d1d5db;
+    --color-border-input: #d1d5db;
+    --color-header-bg: rgba(255, 255, 255, 0.95);
+    --grid-line-color: rgba(0, 0, 0, 0.04);
+    --scrollbar-track: #f4f4f6;
+    --scrollbar-thumb: #d1d5db;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg-base);
+    color: var(--color-text-base);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-heading);
+  }
+}
+
+.font-barlow {
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Technical cut corners for intense athletic design */
+.cut-corner {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+.cut-corner-sm {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+.cut-corner-top-right {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+
+/* Outlined oversized step numbers */
+.text-outline {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.18);
+  color: transparent;
+}
+
+.light .text-outline {
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.15);
+  color: transparent;
+}
+
+.text-outline-active {
+  -webkit-text-stroke: 1.5px rgba(255, 86, 37, 0.5);
+  color: transparent;
+}
+
+/* Subtle grid texture */
+.bg-grid-pattern {
+  background-image: linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
+                    linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-radial-dots {
+  background-image: radial-gradient(#ff5625 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.15;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff5625;
+}
+
+/* Light mode specific component color overrides for smooth compatibility */
+.light .bg-\[\#121212\] {
+  background-color: #f4f4f6;
+}
+
+.light .bg-\[\#1c1b1b\] {
+  background-color: #ffffff;
+}
+
+.light .bg-\[\#181818\] {
+  background-color: #f9fafb;
+}
+
+.light .bg-\[\#141414\] {
+  background-color: #f3f4f6;
+}
+
+.light .bg-\[\#222222\] {
+  background-color: #f3f4f6;
+}
+
+.light .bg-\[\#1e2329\] {
+  background-color: #eff6ff;
+}
+
+.light .bg-\[\#3d1a11\] {
+  background-color: #fff7ed;
+}
+
+.light .bg-\[\#2a0e0e\] {
+  background-color: #fef2f2;
+}
+
+.light .bg-\[\#121212\]\/90,
+.light .bg-\[\#121212\]\/95 {
+  background-color: rgba(255, 255, 255, 0.94);
+}
+
+.light .text-white {
+  color: #111827;
+}
+
+.light .text-\[\#e5e2e1\] {
+  color: #1f2937;
+}
+
+.light .text-\[\#c6c6c7\] {
+  color: #4b5563;
+}
+
+.light .text-\[\#929090\] {
+  color: #6b7280;
+}
+
+.light .text-\[\#777\] {
+  color: #9ca3af;
+}
+
+.light .border-\[\#2a2a2a\],
+.light .border-\[\#2A2A2A\] {
+  border-color: #e5e7eb;
+}
+
+.light .border-\[\#353534\] {
+  border-color: #d1d5db;
+}
+
+.light .border-\[\#222222\] {
+  border-color: #e5e7eb;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #9ca3af;
+}
+
+.light .shadow-inner-glow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}

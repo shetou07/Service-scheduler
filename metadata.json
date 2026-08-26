@@ -1,0 +1,6 @@
+{
+  "name": "Coach Rickie Performance Training",
+  "description": "Elite athletic performance booking platform and admin management suite for Coach Rickie, featuring seamless session booking, weekly schedules, availability management, client profiles, and smash room bookings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
