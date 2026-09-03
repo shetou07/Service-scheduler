@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum AvailabilityStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SlotStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  BOOKING_RESCHEDULED
+  BOOKING_REMINDER
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Admin {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  passwordHash String
+  role String @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  availability Availability[]
+  auditLogs AuditLog[]
+}
+
+model Service {
+  id String @id @default(uuid())
+  name String @unique
+  description String
+  durationMinutes Int
+  priceMinor Int @default(0)
+  status ServiceStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  availability Availability[]
+  slots TimeSlot[]
+  bookings Booking[]
+}
+
+model Availability {
+  id String @id @default(uuid())
+  serviceId String
+  date DateTime @db.Date
+  startTime String
+  endTime String
+  slotDuration Int
+  capacity Int
+  status AvailabilityStatus @default(DRAFT)
+  createdById String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  service Service @relation(fields: [serviceId], references: [id])
+  createdBy Admin @relation(fields: [createdById], references: [id])
+  slots TimeSlot[]
+  @@index([serviceId, date, status])
+}
+
+model TimeSlot {
+  id String @id @default(uuid())
+  availabilityId String
+  serviceId String
+  date DateTime @db.Date
+  startAt DateTime
+  endAt DateTime
+  capacity Int
+  bookedCount Int @default(0)
+  status SlotStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  availability Availability @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id])
+  bookings Booking[]
+  @@index([serviceId, date, status, startAt])
+}
+
+model Client {
+  id String @id @default(uuid())
+  fullName String
+  email String @unique
+  phone String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bookings Booking[]
+}
+
+model Booking {
+  id String @id @default(uuid())
+  bookingReference String @unique
+  clientId String
+  serviceId String
+  slotId String
+  status BookingStatus @default(CONFIRMED)
+  bookedAt DateTime @default(now())
+  cancelledAt DateTime?
+  completedAt DateTime?
+  manageTokenHash String?
+  manageTokenExpiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  client Client @relation(fields: [clientId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+  slot TimeSlot @relation(fields: [slotId], references: [id])
+  notifications Notification[]
+  @@index([status, createdAt])
+  @@index([slotId, status])
+}
+
+model Notification {
+  id String @id @default(uuid())
+  bookingId String
+  recipient String
+  type NotificationType
+  status NotificationStatus @default(PENDING)
+  sentAt DateTime?
+  retryCount Int @default(0)
+  errorMessage String?
+  createdAt DateTime @default(now())
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+  adminId String
+  action String
+  entityType String
+  entityId String
+  metadata Json?
+  createdAt DateTime @default(now())
+  admin Admin @relation(fields: [adminId], references: [id])
+  @@index([entityType, entityId])
+}
