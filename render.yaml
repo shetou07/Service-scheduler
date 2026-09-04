@@ -2,19 +2,19 @@ services:
   - type: web
     name: coach-rickie-api
     env: node
-    rootDir: apps/api
-    buildCommand: npm ci && npx prisma generate && npm run build
-    startCommand: npx prisma migrate deploy && node dist/main.js
-    healthCheckPath: /health
+    rootDir: .
+    buildCommand: npm ci && npm run db:generate && npm run build --workspace=@coach-rickie/api
+    startCommand: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma && npm run start --workspace=@coach-rickie/api
+    healthCheckPath: /api/health
   - type: worker
     name: coach-rickie-worker
     env: node
-    rootDir: apps/api
-    buildCommand: npm ci && npx prisma generate && npm run build
-    startCommand: node dist/workers/notification.worker.js
+    rootDir: .
+    buildCommand: npm ci && npm run db:generate && npm run build --workspace=@coach-rickie/api
+    startCommand: npm run start:worker --workspace=@coach-rickie/api
   - type: web
     name: coach-rickie-web
     env: node
-    rootDir: apps/web
-    buildCommand: npm ci && npm run build
-    startCommand: npm run start
+    rootDir: .
+    buildCommand: npm ci && npm run build --workspace=@coach-rickie/web
+    startCommand: npm run start --workspace=@coach-rickie/web

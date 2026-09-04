@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 type Service = { id: string; name: string; description: string; durationMinutes: number; priceMinor: number };
-const serviceImages: Record<string, string> = { 'Personal Training': '/images/personal-training.jfif', 'Smash Room': '/images/smash-room-logo.jpg' };
+const serviceImages: Record<string, string> = { 'Personal Training': '/images/personal-training.jfif', 'Public Training': '/images/public-training.jfif', 'Public/Group Training': '/images/public-training.jfif', 'Smash Room': '/images/smash-room-logo.jpg', 'Team Building': '/images/team-building.jfif' };
 
 export default function Home() {
   const [services, setServices] = useState<Service[]>([]);
