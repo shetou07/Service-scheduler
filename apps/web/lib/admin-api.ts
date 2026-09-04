@@ -1,4 +1,4 @@
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { apiUrl as api } from './api-url';
 
 export async function adminFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${api}${path}`, { ...init, credentials: 'include', headers: { 'content-type': 'application/json', ...init?.headers } });

@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { apiUrl as api } from '../../lib/api-url';
 
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 type Service = { id: string; name: string; description: string; durationMinutes: number; priceMinor: number };
 type Slot = { id: string; startAt: string; endAt: string; capacity: number; bookedCount: number };
 type Booking = { bookingReference: string };

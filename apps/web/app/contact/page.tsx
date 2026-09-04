@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
+import { apiUrl as api } from '../../lib/api-url';
 
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const initialForm = { fullName: '', email: '', phone: '', message: '' };
 
 export default function ContactPage() {

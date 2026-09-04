@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { apiUrl as api } from '../../lib/api-url';
 
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 const nav = [{ href: '/admin', label: 'Overview' }, { href: '/admin/bookings', label: 'Bookings' }, { href: '/admin/calendar', label: 'Calendar' }, { href: '/admin/availability', label: 'Availability' }, { href: '/admin/services', label: 'Services' }, { href: '/admin/clients', label: 'Athletes' }, { href: '/admin/reports', label: 'Reports' }];
 type Admin = { name: string; email: string; role: string };
 

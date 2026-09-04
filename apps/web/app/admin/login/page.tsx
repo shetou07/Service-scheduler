@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
+import { apiUrl as api } from '../../../lib/api-url';
 
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 export default function AdminLoginPage() {
   const router = useRouter(); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false);

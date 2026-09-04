@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { apiUrl as api } from '../../../lib/api-url';
 
-const api = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 type Booking = { reference: string; status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW'; serviceId: string; service: string; startAt: string; endAt: string; location: string };
 type Slot = { id: string; startAt: string; endAt: string; capacity: number; bookedCount: number };
 
