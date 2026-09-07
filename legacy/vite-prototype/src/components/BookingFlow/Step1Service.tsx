@@ -83,12 +83,12 @@ export const Step1Service: React.FC = () => {
                     <span
                       className={`text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 border rounded-full ${getTagBadge(
                         service.tag,
-                        service.tagVariant
+                        service.tagVariant,
                       )}`}
                     >
                       {service.tag}
                     </span>
-                    
+
                     {/* Radio indicator */}
                     <div
                       className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
@@ -119,7 +119,9 @@ export const Step1Service: React.FC = () => {
                   </span>
                 </div>
                 <div className="font-barlow font-bold text-sm sm:text-base text-[#ff5625] uppercase tracking-wide">
-                  {service.price === 0 ? 'FREE / INCLUDED' : `UGX ${service.price.toLocaleString()} / SES`}
+                  {service.price === 0
+                    ? 'FREE / INCLUDED'
+                    : `UGX ${service.price.toLocaleString()} / SES`}
                 </div>
               </div>
             </div>

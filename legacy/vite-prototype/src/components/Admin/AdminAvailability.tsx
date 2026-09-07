@@ -10,7 +10,7 @@ import {
   ToggleRight,
   Sun,
   Moon,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 
 interface DayConfig {
@@ -29,13 +29,13 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
       { time: '07:00 AM', active: true, capacity: 1 },
       { time: '08:00 AM', active: true, capacity: 15 },
       { time: '09:00 AM', active: false, capacity: 1 },
-      { time: '10:30 AM', active: true, capacity: 1 }
+      { time: '10:30 AM', active: true, capacity: 1 },
     ],
     eveningSlots: [
       { time: '05:00 PM', active: true, capacity: 15 },
       { time: '06:00 PM', active: true, capacity: 15 },
-      { time: '07:00 PM', active: true, capacity: 4 }
-    ]
+      { time: '07:00 PM', active: true, capacity: 4 },
+    ],
   },
   {
     day: 'Tuesday',
@@ -44,12 +44,12 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
       { time: '06:00 AM', active: true, capacity: 15 },
       { time: '07:00 AM', active: true, capacity: 1 },
       { time: '08:00 AM', active: true, capacity: 15 },
-      { time: '10:30 AM', active: true, capacity: 1 }
+      { time: '10:30 AM', active: true, capacity: 1 },
     ],
     eveningSlots: [
       { time: '05:00 PM', active: true, capacity: 15 },
-      { time: '06:00 PM', active: true, capacity: 15 }
-    ]
+      { time: '06:00 PM', active: true, capacity: 15 },
+    ],
   },
   {
     day: 'Wednesday',
@@ -58,13 +58,13 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
       { time: '06:00 AM', active: true, capacity: 15 },
       { time: '07:00 AM', active: true, capacity: 1 },
       { time: '08:00 AM', active: true, capacity: 15 },
-      { time: '10:30 AM', active: true, capacity: 1 }
+      { time: '10:30 AM', active: true, capacity: 1 },
     ],
     eveningSlots: [
       { time: '05:00 PM', active: true, capacity: 15 },
       { time: '06:00 PM', active: true, capacity: 15 },
-      { time: '07:00 PM', active: true, capacity: 4 }
-    ]
+      { time: '07:00 PM', active: true, capacity: 4 },
+    ],
   },
   {
     day: 'Thursday',
@@ -73,13 +73,13 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
       { time: '06:00 AM', active: true, capacity: 15 },
       { time: '07:00 AM', active: true, capacity: 1 },
       { time: '08:00 AM', active: true, capacity: 15 },
-      { time: '10:30 AM', active: true, capacity: 1 }
+      { time: '10:30 AM', active: true, capacity: 1 },
     ],
     eveningSlots: [
       { time: '05:00 PM', active: true, capacity: 15 },
       { time: '06:00 PM', active: true, capacity: 15 },
-      { time: '07:00 PM', active: true, capacity: 4 }
-    ]
+      { time: '07:00 PM', active: true, capacity: 4 },
+    ],
   },
   {
     day: 'Friday',
@@ -88,13 +88,13 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
       { time: '06:00 AM', active: true, capacity: 15 },
       { time: '07:00 AM', active: true, capacity: 1 },
       { time: '08:00 AM', active: true, capacity: 15 },
-      { time: '10:30 AM', active: true, capacity: 1 }
+      { time: '10:30 AM', active: true, capacity: 1 },
     ],
     eveningSlots: [
       { time: '05:00 PM', active: true, capacity: 15 },
       { time: '06:00 PM', active: true, capacity: 15 },
-      { time: '07:00 PM', active: true, capacity: 4 }
-    ]
+      { time: '07:00 PM', active: true, capacity: 4 },
+    ],
   },
   {
     day: 'Saturday',
@@ -102,20 +102,20 @@ const DEFAULT_DAYS_CONFIG: DayConfig[] = [
     morningSlots: [
       { time: '07:00 AM', active: true, capacity: 20 },
       { time: '08:30 AM', active: true, capacity: 20 },
-      { time: '10:00 AM', active: true, capacity: 10 }
+      { time: '10:00 AM', active: true, capacity: 10 },
     ],
     eveningSlots: [
       { time: '02:00 PM', active: true, capacity: 10 },
-      { time: '04:00 PM', active: true, capacity: 10 }
-    ]
-  }
+      { time: '04:00 PM', active: true, capacity: 10 },
+    ],
+  },
 ];
 
 export const AdminAvailability: React.FC = () => {
   const [days, setDays] = useState<DayConfig[]>(DEFAULT_DAYS_CONFIG);
   const [blockedDates, setBlockedDates] = useState<{ date: string; reason: string }[]>([
     { date: '2024-11-01', reason: 'Facility Deep Clean & Rig Inspection' },
-    { date: '2024-11-15', reason: 'Coach Rickie CSCS Pro Seminar' }
+    { date: '2024-11-15', reason: 'Coach Rickie CSCS Pro Seminar' },
   ]);
   const [newBlockDate, setNewBlockDate] = useState('');
   const [newBlockReason, setNewBlockReason] = useState('');
@@ -124,7 +124,8 @@ export const AdminAvailability: React.FC = () => {
   const toggleSlot = (dayIdx: number, section: 'morning' | 'evening', slotIdx: number) => {
     setDays((prev) => {
       const copy = [...prev];
-      const targetList = section === 'morning' ? copy[dayIdx].morningSlots : copy[dayIdx].eveningSlots;
+      const targetList =
+        section === 'morning' ? copy[dayIdx].morningSlots : copy[dayIdx].eveningSlots;
       targetList[slotIdx].active = !targetList[slotIdx].active;
       return copy;
     });
@@ -149,7 +150,6 @@ export const AdminAvailability: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -173,7 +173,10 @@ export const AdminAvailability: React.FC = () => {
       {/* Weekly Grid Template */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {days.map((dayConfig, dIdx) => (
-          <div key={dayConfig.day} className="bg-[#1c1b1b] border border-[#2a2a2a] cut-corner p-5 space-y-4">
+          <div
+            key={dayConfig.day}
+            className="bg-[#1c1b1b] border border-[#2a2a2a] cut-corner p-5 space-y-4"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#2a2a2a]">
               <h3 className="font-barlow font-bold text-xl uppercase text-white tracking-wide">
                 {dayConfig.day}
@@ -203,7 +206,9 @@ export const AdminAvailability: React.FC = () => {
                     <span>{slot.time}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-[#929090]">Cap: {slot.capacity}</span>
-                      <span className={`w-2 h-2 rounded-full ${slot.active ? 'bg-emerald-400' : 'bg-red-500'}`} />
+                      <span
+                        className={`w-2 h-2 rounded-full ${slot.active ? 'bg-emerald-400' : 'bg-red-500'}`}
+                      />
                     </div>
                   </div>
                 ))}
@@ -230,7 +235,9 @@ export const AdminAvailability: React.FC = () => {
                     <span>{slot.time}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-[#929090]">Cap: {slot.capacity}</span>
-                      <span className={`w-2 h-2 rounded-full ${slot.active ? 'bg-emerald-400' : 'bg-red-500'}`} />
+                      <span
+                        className={`w-2 h-2 rounded-full ${slot.active ? 'bg-emerald-400' : 'bg-red-500'}`}
+                      />
                     </div>
                   </div>
                 ))}

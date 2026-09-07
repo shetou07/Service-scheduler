@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { Search, X, Check, Calendar, Clock, MapPin, AlertCircle, Dumbbell, Trash2 } from 'lucide-react';
+import {
+  Search,
+  X,
+  Check,
+  Calendar,
+  Clock,
+  MapPin,
+  AlertCircle,
+  Dumbbell,
+  Trash2,
+} from 'lucide-react';
 
 export const ManageBookingModal: React.FC = () => {
   const {
@@ -8,7 +18,7 @@ export const ManageBookingModal: React.FC = () => {
     setIsLookupModalOpen,
     searchBookingRef,
     lookupRefResult,
-    cancelBooking
+    cancelBooking,
   } = useBooking();
 
   const [inputRef, setInputRef] = useState('');
@@ -27,7 +37,11 @@ export const ManageBookingModal: React.FC = () => {
 
   const handleCancelThisBooking = () => {
     if (!lookupRefResult) return;
-    if (window.confirm('Are you sure you want to cancel this booking? Your slot will be made available to other athletes.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to cancel this booking? Your slot will be made available to other athletes.',
+      )
+    ) {
       cancelBooking(lookupRefResult.id);
       searchBookingRef(lookupRefResult.referenceNumber);
     }
@@ -39,7 +53,6 @@ export const ManageBookingModal: React.FC = () => {
       <div className="fixed inset-0" onClick={() => setIsLookupModalOpen(false)} />
 
       <div className="relative z-10 w-full max-w-lg bg-[#181818] border border-[#2a2a2a] cut-corner shadow-2xl p-6 space-y-6">
-        
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#2a2a2a]">
           <div>
@@ -87,7 +100,18 @@ export const ManageBookingModal: React.FC = () => {
           </div>
 
           <div className="text-[11px] text-[#777] font-mono">
-            Tip: Try sample reference: <button type="button" onClick={() => { setInputRef('CR-20241015-00482'); searchBookingRef('CR-20241015-00482'); setHasSearched(true); }} className="text-[#ff5625] underline">CR-20241015-00482</button>
+            Tip: Try sample reference:{' '}
+            <button
+              type="button"
+              onClick={() => {
+                setInputRef('CR-20241015-00482');
+                searchBookingRef('CR-20241015-00482');
+                setHasSearched(true);
+              }}
+              className="text-[#ff5625] underline"
+            >
+              CR-20241015-00482
+            </button>
           </div>
         </form>
 
@@ -116,7 +140,9 @@ export const ManageBookingModal: React.FC = () => {
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] font-mono uppercase text-[#929090] block">Reference</span>
+                <span className="text-[10px] font-mono uppercase text-[#929090] block">
+                  Reference
+                </span>
                 <span className="font-mono font-bold text-xs text-white">
                   {lookupRefResult.referenceNumber}
                 </span>
@@ -130,7 +156,9 @@ export const ManageBookingModal: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-[#929090]">Discipline:</span>
-                <span className="text-[#ff5625] font-bold uppercase">{lookupRefResult.serviceName}</span>
+                <span className="text-[#ff5625] font-bold uppercase">
+                  {lookupRefResult.serviceName}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#929090]">Scheduled Date:</span>
@@ -138,7 +166,9 @@ export const ManageBookingModal: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-[#929090]">Time Slot:</span>
-                <span className="text-white font-mono">{lookupRefResult.timeSlot} - {lookupRefResult.endTime}</span>
+                <span className="text-white font-mono">
+                  {lookupRefResult.timeSlot} - {lookupRefResult.endTime}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#929090]">Location:</span>
@@ -160,7 +190,6 @@ export const ManageBookingModal: React.FC = () => {
             )}
           </div>
         )}
-
       </div>
     </div>
   );

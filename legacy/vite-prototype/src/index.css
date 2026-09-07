@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   :root {
@@ -24,7 +24,9 @@
     --scrollbar-thumb: #2a2a2a;
   }
 
-  html.light, body.light, .light {
+  html.light,
+  body.light,
+  .light {
     /* Theme colors - Light Mode */
     --color-bg-base: #f4f4f6;
     --color-bg-surface: #ffffff;
@@ -48,10 +50,18 @@
     font-family: var(--font-body);
     background-color: var(--color-bg-base);
     color: var(--color-text-base);
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition:
+      background-color 0.25s ease,
+      color 0.25s ease;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-heading {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-heading {
     font-family: var(--font-heading);
   }
 }
@@ -95,8 +105,9 @@
 
 /* Subtle grid texture */
 .bg-grid-pattern {
-  background-image: linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
-                    linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
+  background-image:
+    linear-gradient(to right, var(--grid-line-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line-color) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 

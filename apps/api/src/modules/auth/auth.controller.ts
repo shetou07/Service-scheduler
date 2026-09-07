@@ -28,10 +28,18 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) response: Response) {
-    response.clearCookie('admin_access', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', path: '/' });
+    response.clearCookie('admin_access', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+    });
     return { ok: true };
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('me') me(@Req() request: { admin: { id: string } }) { return this.auth.profile(request.admin.id); }
+  @Get('me')
+  me(@Req() request: { admin: { id: string } }) {
+    return this.auth.profile(request.admin.id);
+  }
 }

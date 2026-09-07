@@ -1,11 +1,7 @@
 import React from 'react';
 import { useBooking } from '../context/BookingContext';
 import { ServiceId } from '../types';
-import {
-  COACH_RICKIE_HERO,
-  COACH_AVATAR,
-  SERVICES
-} from '../data/mockData';
+import { COACH_RICKIE_HERO, COACH_AVATAR, SERVICES } from '../data/mockData';
 import {
   Dumbbell,
   Flame,
@@ -23,7 +19,7 @@ import {
   Mail,
   Instagram,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -35,7 +31,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#121212] text-[#e5e2e1] selection:bg-[#ff5625] selection:text-black">
-      
       {/* 1. HERO SECTION */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden border-b border-[#2a2a2a] bg-grid-pattern">
         {/* Background Gritty Athlete Image */}
@@ -50,7 +45,6 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center sm:text-left flex flex-col items-center sm:items-start justify-center">
-          
           {/* Tagline Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#ff5625]/15 border border-[#ff5625]/40 text-[#ff5625] text-xs font-mono tracking-widest uppercase cut-corner-sm mb-6 shadow-md shadow-[#ff5625]/10">
             <Flame className="w-4 h-4 animate-pulse" />
@@ -65,7 +59,9 @@ export const LandingPage: React.FC = () => {
           </h1>
 
           <p className="mt-6 text-base sm:text-lg text-[#c6c6c7] max-w-2xl font-normal leading-relaxed">
-            Welcome to Coach Rickie's elite training lab in Kampala. From customized 1-on-1 mechanical overload and high-energy group conditioning to the city's premier therapeutic Smash Room.
+            Welcome to Coach Rickie's elite training lab in Kampala. From customized 1-on-1
+            mechanical overload and high-energy group conditioning to the city's premier therapeutic
+            Smash Room.
           </p>
 
           {/* Action CTAs */}
@@ -93,16 +89,28 @@ export const LandingPage: React.FC = () => {
           {/* Key Stat Badges */}
           <div className="mt-12 pt-8 border-t border-[#2a2a2a] grid grid-cols-2 sm:grid-cols-3 gap-6 w-full max-w-2xl">
             <div>
-              <span className="font-barlow font-black text-3xl sm:text-4xl text-white block">100%</span>
-              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">Coach Supervised</span>
+              <span className="font-barlow font-black text-3xl sm:text-4xl text-white block">
+                100%
+              </span>
+              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">
+                Coach Supervised
+              </span>
             </div>
             <div>
-              <span className="font-barlow font-black text-3xl sm:text-4xl text-[#ff5625] block">45-60 MIN</span>
-              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">High-Yield Protocols</span>
+              <span className="font-barlow font-black text-3xl sm:text-4xl text-[#ff5625] block">
+                45-60 MIN
+              </span>
+              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">
+                High-Yield Protocols
+              </span>
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <span className="font-barlow font-black text-3xl sm:text-4xl text-white block">LUGOGO BYPASS</span>
-              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">Prime Location</span>
+              <span className="font-barlow font-black text-3xl sm:text-4xl text-white block">
+                LUGOGO BYPASS
+              </span>
+              <span className="text-xs font-mono text-[#929090] uppercase tracking-wider">
+                Prime Location
+              </span>
             </div>
           </div>
         </div>
@@ -121,7 +129,8 @@ export const LandingPage: React.FC = () => {
             </h2>
           </div>
           <p className="text-sm text-[#929090] max-w-md">
-            Click any discipline below to review details and immediately secure your spot on the live timetable.
+            Click any discipline below to review details and immediately secure your spot on the
+            live timetable.
           </p>
         </div>
 
@@ -142,7 +151,7 @@ export const LandingPage: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent" />
-                  
+
                   {/* Tag Pill */}
                   <div className="absolute top-3 left-3">
                     <span className="text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 bg-black/80 text-[#ff5625] border border-[#ff5625]/40 cut-corner-sm uppercase">
@@ -162,9 +171,7 @@ export const LandingPage: React.FC = () => {
                   <h3 className="font-barlow font-bold text-2xl uppercase text-white tracking-wide group-hover:text-[#ff5625] transition-colors">
                     {service.name}
                   </h3>
-                  <p className="text-xs text-[#c6c6c7] font-medium mt-1 mb-3">
-                    {service.subtitle}
-                  </p>
+                  <p className="text-xs text-[#c6c6c7] font-medium mt-1 mb-3">{service.subtitle}</p>
                   <p className="text-xs text-[#929090] line-clamp-3 leading-relaxed mb-4">
                     {service.description}
                   </p>
@@ -185,7 +192,9 @@ export const LandingPage: React.FC = () => {
               <div className="p-5 pt-0">
                 <div className="p-3 bg-[#131313] border border-[#252525] group-hover:border-[#ff5625]/50 rounded flex items-center justify-between transition-colors">
                   <div>
-                    <span className="text-[10px] font-mono text-[#929090] uppercase block">Rates</span>
+                    <span className="text-[10px] font-mono text-[#929090] uppercase block">
+                      Rates
+                    </span>
                     <span className="font-barlow font-bold text-sm text-white uppercase">
                       {service.priceLabel}
                     </span>
@@ -229,7 +238,8 @@ export const LandingPage: React.FC = () => {
                 Pick Your Discipline
               </h3>
               <p className="text-xs text-[#929090] leading-relaxed">
-                Choose between custom 1-on-1 personal coaching, high-octane group conditioning, recovery therapy, or an adrenaline smash session.
+                Choose between custom 1-on-1 personal coaching, high-octane group conditioning,
+                recovery therapy, or an adrenaline smash session.
               </p>
             </div>
 
@@ -245,7 +255,8 @@ export const LandingPage: React.FC = () => {
                 Choose Your Time
               </h3>
               <p className="text-xs text-[#929090] leading-relaxed">
-                Select your preferred morning or evening time slot with real-time live availability. Instant SMS & calendar confirmation provided.
+                Select your preferred morning or evening time slot with real-time live availability.
+                Instant SMS & calendar confirmation provided.
               </p>
             </div>
 
@@ -261,7 +272,8 @@ export const LandingPage: React.FC = () => {
                 Show Up & Execute
               </h3>
               <p className="text-xs text-[#929090] leading-relaxed">
-                Arrive at our Kampala facility. All specialized gear, safety equipment, lockers, and cold hydration are ready for you.
+                Arrive at our Kampala facility. All specialized gear, safety equipment, lockers, and
+                cold hydration are ready for you.
               </p>
             </div>
           </div>
@@ -282,7 +294,9 @@ export const LandingPage: React.FC = () => {
                 <span className="text-[#ff5625]">OBLITERATE STRESS.</span>
               </h2>
               <p className="text-sm text-[#c6c6c7] mt-4 leading-relaxed">
-                Step inside Uganda's premier reinforced smash arena. Suit up in tactical body armor, choose from sledgehammers, steel pipes, or baseball bats, and demolish monitors, glass, appliances, and heavy targets with full audio blast.
+                Step inside Uganda's premier reinforced smash arena. Suit up in tactical body armor,
+                choose from sledgehammers, steel pipes, or baseball bats, and demolish monitors,
+                glass, appliances, and heavy targets with full audio blast.
               </p>
             </div>
 
@@ -327,14 +341,9 @@ export const LandingPage: React.FC = () => {
       <section id="trainers-section" className="py-20 bg-[#161616] border-t border-[#2a2a2a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
             <div className="lg:col-span-5">
               <div className="relative rounded overflow-hidden border-2 border-[#ff5625] cut-corner shadow-2xl">
-                <img
-                  src={COACH_AVATAR}
-                  alt="Coach Rickie"
-                  className="w-full h-full object-cover"
-                />
+                <img src={COACH_AVATAR} alt="Coach Rickie" className="w-full h-full object-cover" />
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/70 to-transparent p-6">
                   <div className="font-barlow font-black text-3xl uppercase text-white tracking-wide">
                     COACH RICKIE
@@ -355,16 +364,23 @@ export const LandingPage: React.FC = () => {
                 "WE DON'T NEGOTIATE WITH WEAKNESS."
               </h2>
               <p className="text-sm text-[#c6c6c7] leading-relaxed">
-                With over a decade of elite strength and conditioning background, Coach Rickie combines biomechanical rigor with relentless energy. Whether training Uganda Rugby athletes, corporate high-performers, or beginners starting their fitness journey, every session is engineered for measurable adaptation.
+                With over a decade of elite strength and conditioning background, Coach Rickie
+                combines biomechanical rigor with relentless energy. Whether training Uganda Rugby
+                athletes, corporate high-performers, or beginners starting their fitness journey,
+                every session is engineered for measurable adaptation.
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="border-l-2 border-[#ff5625] pl-4">
-                  <div className="font-barlow font-bold text-xl text-white uppercase">Certified CSCS</div>
+                  <div className="font-barlow font-bold text-xl text-white uppercase">
+                    Certified CSCS
+                  </div>
                   <div className="text-xs text-[#929090]">National Strength & Conditioning</div>
                 </div>
                 <div className="border-l-2 border-[#ff5625] pl-4">
-                  <div className="font-barlow font-bold text-xl text-white uppercase">Biomechanical Focus</div>
+                  <div className="font-barlow font-bold text-xl text-white uppercase">
+                    Biomechanical Focus
+                  </div>
                   <div className="text-xs text-[#929090]">Injury Prevention & Kinetic Output</div>
                 </div>
               </div>
@@ -378,7 +394,6 @@ export const LandingPage: React.FC = () => {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -409,24 +424,44 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-[#ff5625] shrink-0 mt-0.5" />
               <div>
-                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">Studio Address</strong>
-                <p className="text-[#929090]">Lugogo Bypass, Kampala, Uganda<br />Free secure parking for athletes</p>
+                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">
+                  Studio Address
+                </strong>
+                <p className="text-[#929090]">
+                  Lugogo Bypass, Kampala, Uganda
+                  <br />
+                  Free secure parking for athletes
+                </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <Clock className="w-5 h-5 text-[#ff5625] shrink-0 mt-0.5" />
               <div>
-                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">Hours of Operation</strong>
-                <p className="text-[#929090]">Mon - Fri: 06:00 AM - 09:00 PM (EAT)<br />Saturday: 07:00 AM - 06:00 PM (EAT)<br />Sunday: Closed for Recovery</p>
+                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">
+                  Hours of Operation
+                </strong>
+                <p className="text-[#929090]">
+                  Mon - Fri: 06:00 AM - 09:00 PM (EAT)
+                  <br />
+                  Saturday: 07:00 AM - 06:00 PM (EAT)
+                  <br />
+                  Sunday: Closed for Recovery
+                </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
               <Phone className="w-5 h-5 text-[#ff5625] shrink-0 mt-0.5" />
               <div>
-                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">Direct Contact</strong>
-                <p className="text-[#929090]">Phone: +256 772 100 200<br />Email: bookings@coachrickie.ug</p>
+                <strong className="text-white block font-barlow font-bold text-base uppercase mb-1">
+                  Direct Contact
+                </strong>
+                <p className="text-[#929090]">
+                  Phone: +256 772 100 200
+                  <br />
+                  Email: bookings@coachrickie.ug
+                </p>
               </div>
             </div>
           </div>
@@ -444,7 +479,9 @@ export const LandingPage: React.FC = () => {
               <span className="font-barlow font-bold text-lg uppercase text-white tracking-wider">
                 COACH RICKIE PERFORMANCE
               </span>
-              <p className="text-[10px] font-mono text-[#777]">© {new Date().getFullYear()} Kampala, Uganda. All Rights Reserved.</p>
+              <p className="text-[10px] font-mono text-[#777]">
+                © {new Date().getFullYear()} Kampala, Uganda. All Rights Reserved.
+              </p>
             </div>
           </div>
 

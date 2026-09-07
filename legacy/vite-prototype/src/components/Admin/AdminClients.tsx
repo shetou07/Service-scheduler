@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
 import { CLIENT_PROFILES } from '../../data/mockData';
-import { Search, User, Phone, Mail, Award, Target, AlertTriangle, Plus, Calendar, Dumbbell } from 'lucide-react';
+import {
+  Search,
+  User,
+  Phone,
+  Mail,
+  Award,
+  Target,
+  AlertTriangle,
+  Plus,
+  Calendar,
+  Dumbbell,
+} from 'lucide-react';
 
 export const AdminClients: React.FC = () => {
   const { openBookingModal, setClientDetails } = useBooking();
@@ -12,23 +23,22 @@ export const AdminClients: React.FC = () => {
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
       c.phone.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
+      c.email.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleBookForClient = (client: typeof CLIENT_PROFILES[0]) => {
+  const handleBookForClient = (client: (typeof CLIENT_PROFILES)[0]) => {
     setClientDetails({
       fullName: client.name,
       email: client.email,
       phone: client.phone,
       goals: client.goals,
-      injuries: client.injuries
+      injuries: client.injuries,
     });
     openBookingModal();
   };
 
   return (
     <div className="space-y-6">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -91,7 +101,9 @@ export const AdminClients: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 text-[#c6c6c7]">
                   <Dumbbell className="w-3.5 h-3.5 text-[#ff5625]" />
-                  <span><strong>{client.sessionsAttended}</strong> Sessions Completed</span>
+                  <span>
+                    <strong>{client.sessionsAttended}</strong> Sessions Completed
+                  </span>
                 </div>
               </div>
 

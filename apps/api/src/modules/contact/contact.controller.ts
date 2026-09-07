@@ -12,5 +12,7 @@ class ContactDto {
 @Controller('contact')
 export class ContactController {
   constructor(private readonly contact: ContactService) {}
-  @Post() send(@Body() body: ContactDto) { return this.contact.send(body); }
+  @Post() send(@Body() body: ContactDto) {
+    return this.contact.send(body);
+  }
 }

@@ -22,13 +22,17 @@ export const BookingModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
       {/* Outer Click Backdrop */}
-      <div 
+      <div
         className="fixed inset-0"
         onClick={() => {
           if (bookingStep === 5) {
             closeBookingModal();
           } else {
-            if (window.confirm('Are you sure you want to exit booking? Your progress will be saved in session.')) {
+            if (
+              window.confirm(
+                'Are you sure you want to exit booking? Your progress will be saved in session.',
+              )
+            ) {
               closeBookingModal();
             }
           }
@@ -37,10 +41,8 @@ export const BookingModal: React.FC = () => {
 
       {/* Modal Dialog Card */}
       <div className="relative z-10 w-full max-w-4xl bg-[#141414] border border-[#2a2a2a] cut-corner shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
-        
         {/* Modal Header */}
         <div className="px-5 sm:px-8 py-4 bg-[#181818] border-b border-[#2a2a2a] flex items-center justify-between shrink-0">
-          
           {/* Breadcrumb Steps (Visible during steps 1-4) */}
           {bookingStep <= 4 ? (
             <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto py-1">
@@ -57,8 +59,8 @@ export const BookingModal: React.FC = () => {
                         isActive
                           ? 'text-[#ff5625] font-bold'
                           : isCompleted
-                          ? 'text-white hover:text-[#ff5625]'
-                          : 'text-[#555] cursor-not-allowed'
+                            ? 'text-white hover:text-[#ff5625]'
+                            : 'text-[#555] cursor-not-allowed'
                       }`}
                     >
                       <span
@@ -66,8 +68,8 @@ export const BookingModal: React.FC = () => {
                           isActive
                             ? 'bg-[#ff5625] text-black font-bold'
                             : isCompleted
-                            ? 'bg-[#2a2a2a] text-emerald-400 border border-emerald-500/40'
-                            : 'bg-[#1e1e1e] text-[#666]'
+                              ? 'bg-[#2a2a2a] text-emerald-400 border border-emerald-500/40'
+                              : 'bg-[#1e1e1e] text-[#666]'
                         }`}
                       >
                         {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : s.num}
@@ -84,7 +86,9 @@ export const BookingModal: React.FC = () => {
           ) : (
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-mono text-[#c6c6c7] uppercase">RESERVATION COMPLETE</span>
+              <span className="text-xs font-mono text-[#c6c6c7] uppercase">
+                RESERVATION COMPLETE
+              </span>
             </div>
           )}
 

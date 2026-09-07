@@ -1,21 +1,33 @@
 import React from 'react';
 import { useBooking } from '../context/BookingContext';
-import { Shield, Calendar, Search, LayoutDashboard, Dumbbell, ArrowRight, Sun, Moon } from 'lucide-react';
+import {
+  Shield,
+  Calendar,
+  Search,
+  LayoutDashboard,
+  Dumbbell,
+  ArrowRight,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import { COACH_RICKIE_LOGO } from '../data/mockData';
 
 export const Navbar: React.FC = () => {
-  const { appView, setAppView, openBookingModal, setIsLookupModalOpen, theme, toggleTheme } = useBooking();
+  const { appView, setAppView, openBookingModal, setIsLookupModalOpen, theme, toggleTheme } =
+    useBooking();
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#121212]/90 backdrop-blur-md border-b border-[#2A2A2A] transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        
         {/* Brand / Logo */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setAppView('landing')}>
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => setAppView('landing')}
+        >
           <div className="relative w-10 h-10 bg-[#1c1b1b] border border-[#ff5625]/40 flex items-center justify-center cut-corner-sm shadow-sm">
-            <img 
-              src={COACH_RICKIE_LOGO} 
-              alt="Coach Rickie Logo" 
+            <img
+              src={COACH_RICKIE_LOGO}
+              alt="Coach Rickie Logo"
               className="w-8 h-8 object-contain"
               onError={(e) => {
                 // Fallback icon if URL is unreachable
@@ -36,7 +48,7 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Nav Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide">
-          <button 
+          <button
             onClick={() => {
               setAppView('landing');
               const el = document.getElementById('services-section');
@@ -46,7 +58,7 @@ export const Navbar: React.FC = () => {
           >
             Services
           </button>
-          <button 
+          <button
             onClick={() => {
               setAppView('landing');
               const el = document.getElementById('smash-room-section');
@@ -56,7 +68,7 @@ export const Navbar: React.FC = () => {
           >
             Smash Room
           </button>
-          <button 
+          <button
             onClick={() => {
               setAppView('landing');
               const el = document.getElementById('schedule-section');
@@ -66,7 +78,7 @@ export const Navbar: React.FC = () => {
           >
             Schedule
           </button>
-          <button 
+          <button
             onClick={() => {
               setAppView('landing');
               const el = document.getElementById('trainers-section');
@@ -80,7 +92,6 @@ export const Navbar: React.FC = () => {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
@@ -91,12 +102,16 @@ export const Navbar: React.FC = () => {
             {theme === 'dark' ? (
               <>
                 <Sun className="w-4 h-4 text-amber-400" />
-                <span className="hidden lg:inline text-[11px] font-mono uppercase text-amber-400/90 font-semibold">Light</span>
+                <span className="hidden lg:inline text-[11px] font-mono uppercase text-amber-400/90 font-semibold">
+                  Light
+                </span>
               </>
             ) : (
               <>
                 <Moon className="w-4 h-4 text-blue-500" />
-                <span className="hidden lg:inline text-[11px] font-mono uppercase text-blue-600 font-semibold">Dark</span>
+                <span className="hidden lg:inline text-[11px] font-mono uppercase text-blue-600 font-semibold">
+                  Dark
+                </span>
               </>
             )}
           </button>

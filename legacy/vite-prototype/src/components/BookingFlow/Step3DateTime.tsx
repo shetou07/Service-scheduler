@@ -1,6 +1,15 @@
 import React from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Sun, Moon } from 'lucide-react';
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+  ArrowRight,
+  Sun,
+  Moon,
+} from 'lucide-react';
 
 interface TimeSlotOption {
   time: string;
@@ -18,17 +27,12 @@ const AVAILABLE_SLOTS: TimeSlotOption[] = [
   { time: '01:00 PM', spots: 2, status: 'available', section: 'morning' },
   { time: '05:00 PM', spots: 1, status: 'available', section: 'evening' },
   { time: '06:00 PM', spots: 5, status: 'available', section: 'evening' },
-  { time: '07:00 PM', spots: 2, status: 'available', section: 'evening' }
+  { time: '07:00 PM', spots: 2, status: 'available', section: 'evening' },
 ];
 
 export const Step3DateTime: React.FC = () => {
-  const {
-    selectedDate,
-    setSelectedDate,
-    selectedTimeSlot,
-    setSelectedTimeSlot,
-    setBookingStep
-  } = useBooking();
+  const { selectedDate, setSelectedDate, selectedTimeSlot, setSelectedTimeSlot, setBookingStep } =
+    useBooking();
 
   // Calendar days for October 2024
   // Oct 1st is Tuesday
@@ -51,7 +55,7 @@ export const Step3DateTime: React.FC = () => {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 
   return (
@@ -70,7 +74,6 @@ export const Step3DateTime: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         {/* Left: October Calendar Picker */}
         <div className="lg:col-span-5 bg-[#1c1b1b] border border-[#2a2a2a] p-5 cut-corner flex flex-col justify-between">
           <div>
@@ -134,10 +137,10 @@ export const Step3DateTime: React.FC = () => {
                       isSelected
                         ? 'bg-[#ff5625] text-black font-bold shadow-md shadow-[#ff5625]/30'
                         : isPast
-                        ? 'text-[#444] cursor-not-allowed'
-                        : isAvailable
-                        ? 'text-white hover:bg-[#2a2a2a] font-medium'
-                        : 'text-[#666] hover:bg-[#222]'
+                          ? 'text-[#444] cursor-not-allowed'
+                          : isAvailable
+                            ? 'text-white hover:bg-[#2a2a2a] font-medium'
+                            : 'text-[#666] hover:bg-[#222]'
                     }`}
                   >
                     <span>{dayNum}</span>
@@ -164,7 +167,6 @@ export const Step3DateTime: React.FC = () => {
         {/* Right: Time Slots Selection */}
         <div className="lg:col-span-7 bg-[#1c1b1b] border border-[#2a2a2a] p-5 cut-corner flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            
             {/* Morning Section */}
             <div>
               <div className="flex items-center gap-2 text-xs font-mono uppercase text-[#c6c6c7] mb-2.5 pb-1 border-b border-[#2a2a2a]">
@@ -185,12 +187,14 @@ export const Step3DateTime: React.FC = () => {
                         isFull
                           ? 'border-[#262626] bg-[#141414] opacity-40 cursor-not-allowed'
                           : isSelected
-                          ? 'border-[#ff5625] bg-[#ff5625]/15 ring-1 ring-[#ff5625]'
-                          : 'border-[#2e2e2e] bg-[#161616] hover:border-[#444] hover:bg-[#1f1f1f]'
+                            ? 'border-[#ff5625] bg-[#ff5625]/15 ring-1 ring-[#ff5625]'
+                            : 'border-[#2e2e2e] bg-[#161616] hover:border-[#444] hover:bg-[#1f1f1f]'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1">
-                        <span className={`font-mono text-xs font-bold ${isSelected ? 'text-[#ff5625]' : 'text-white'}`}>
+                        <span
+                          className={`font-mono text-xs font-bold ${isSelected ? 'text-[#ff5625]' : 'text-white'}`}
+                        >
                           {slot.time}
                         </span>
                         {isFull ? (
@@ -233,12 +237,14 @@ export const Step3DateTime: React.FC = () => {
                         isFull
                           ? 'border-[#262626] bg-[#141414] opacity-40 cursor-not-allowed'
                           : isSelected
-                          ? 'border-[#ff5625] bg-[#ff5625]/15 ring-1 ring-[#ff5625]'
-                          : 'border-[#2e2e2e] bg-[#161616] hover:border-[#444] hover:bg-[#1f1f1f]'
+                            ? 'border-[#ff5625] bg-[#ff5625]/15 ring-1 ring-[#ff5625]'
+                            : 'border-[#2e2e2e] bg-[#161616] hover:border-[#444] hover:bg-[#1f1f1f]'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1">
-                        <span className={`font-mono text-xs font-bold ${isSelected ? 'text-[#ff5625]' : 'text-white'}`}>
+                        <span
+                          className={`font-mono text-xs font-bold ${isSelected ? 'text-[#ff5625]' : 'text-white'}`}
+                        >
                           {slot.time}
                         </span>
                         {isFull ? (

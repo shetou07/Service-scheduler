@@ -13,7 +13,7 @@ import {
   XCircle,
   Play,
   Flame,
-  ArrowUpRight
+  ArrowUpRight,
 } from 'lucide-react';
 
 export const AdminOverview: React.FC = () => {
@@ -52,7 +52,6 @@ export const AdminOverview: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
       {/* Top Banner & Quick Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -84,13 +83,13 @@ export const AdminOverview: React.FC = () => {
             <span>Today's Sessions</span>
             <CalendarIcon className="w-4 h-4 text-[#ff5625]" />
           </div>
-          <div className="font-barlow font-black text-4xl text-white">
-            {totalToday}
-          </div>
+          <div className="font-barlow font-black text-4xl text-white">{totalToday}</div>
           <div className="text-[11px] font-mono text-[#929090] mt-1 flex items-center gap-1.5">
             <span className="text-emerald-400 font-bold">{completedCount} Done</span>
             <span>•</span>
-            <span className="text-amber-400 font-bold">{totalToday - completedCount - cancelledCount} Pending</span>
+            <span className="text-amber-400 font-bold">
+              {totalToday - completedCount - cancelledCount} Pending
+            </span>
           </div>
         </div>
 
@@ -100,9 +99,7 @@ export const AdminOverview: React.FC = () => {
             <span>Upcoming (Week)</span>
             <Users className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="font-barlow font-black text-4xl text-blue-400">
-            {bookings.length}
-          </div>
+          <div className="font-barlow font-black text-4xl text-blue-400">{bookings.length}</div>
           <div className="text-[11px] font-mono text-[#929090] mt-1">
             Across 4 disciplines in Kigali
           </div>
@@ -114,9 +111,7 @@ export const AdminOverview: React.FC = () => {
             <span>Open Slots Today</span>
             <Clock className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="font-barlow font-black text-4xl text-emerald-400">
-            11
-          </div>
+          <div className="font-barlow font-black text-4xl text-emerald-400">11</div>
           <div className="text-[11px] font-mono text-[#929090] mt-1">
             Available on booking engine
           </div>
@@ -128,9 +123,7 @@ export const AdminOverview: React.FC = () => {
             <span>Cancelled / Free</span>
             <AlertCircle className="w-4 h-4 text-red-400" />
           </div>
-          <div className="font-barlow font-black text-4xl text-red-400">
-            {cancelledCount}
-          </div>
+          <div className="font-barlow font-black text-4xl text-red-400">{cancelledCount}</div>
           <div className="text-[11px] font-mono text-[#929090] mt-1">
             Auto-released to timetable
           </div>
@@ -194,12 +187,18 @@ export const AdminOverview: React.FC = () => {
                         <Clock className="w-3.5 h-3.5 text-[#ff5625]" />
                         <span>{booking.timeSlot}</span>
                       </div>
-                      <span className="text-[10px] text-[#777] block mt-0.5">End: {booking.endTime}</span>
+                      <span className="text-[10px] text-[#777] block mt-0.5">
+                        End: {booking.endTime}
+                      </span>
                     </td>
 
                     <td className="p-4">
-                      <div className="font-medium text-white text-sm">{booking.client.fullName}</div>
-                      <div className="font-mono text-[11px] text-[#929090]">{booking.client.phone}</div>
+                      <div className="font-medium text-white text-sm">
+                        {booking.client.fullName}
+                      </div>
+                      <div className="font-mono text-[11px] text-[#929090]">
+                        {booking.client.phone}
+                      </div>
                       {booking.client.injuries && (
                         <div className="text-[10px] text-amber-400 font-mono mt-0.5 truncate max-w-xs">
                           ⚠️ {booking.client.injuries}
@@ -223,7 +222,7 @@ export const AdminOverview: React.FC = () => {
                     <td className="p-4">
                       <span
                         className={`text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-1 rounded border inline-block ${getStatusBadge(
-                          booking.status
+                          booking.status,
                         )}`}
                       >
                         {booking.status}
@@ -284,7 +283,9 @@ export const AdminOverview: React.FC = () => {
 
         {/* Footer Jump to Full Calendar */}
         <div className="p-3 bg-[#181818] border-t border-[#2a2a2a] flex items-center justify-between text-xs font-mono">
-          <span className="text-[#929090]">Showing {filteredToday.length} of {totalToday} sessions today</span>
+          <span className="text-[#929090]">
+            Showing {filteredToday.length} of {totalToday} sessions today
+          </span>
           <button
             onClick={() => setAdminTab('calendar')}
             className="text-[#ff5625] hover:underline flex items-center gap-1"

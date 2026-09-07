@@ -12,7 +12,7 @@ import {
   XCircle,
   FileSpreadsheet,
   Trash2,
-  Plus
+  Plus,
 } from 'lucide-react';
 
 export const AdminBookings: React.FC = () => {
@@ -54,7 +54,7 @@ export const AdminBookings: React.FC = () => {
     const rows = filteredBookings
       .map(
         (b) =>
-          `"${b.referenceNumber}","${b.client.fullName}","${b.client.phone}","${b.client.email}","${b.serviceName}","${b.date}","${b.timeSlot}","${b.status}","${b.price}"`
+          `"${b.referenceNumber}","${b.client.fullName}","${b.client.phone}","${b.client.email}","${b.serviceName}","${b.date}","${b.timeSlot}","${b.status}","${b.price}"`,
       )
       .join('\n');
 
@@ -62,7 +62,10 @@ export const AdminBookings: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `CoachRickie_Bookings_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      'download',
+      `CoachRickie_Bookings_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -70,7 +73,6 @@ export const AdminBookings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -180,7 +182,9 @@ export const AdminBookings: React.FC = () => {
                     <td className="p-4">
                       <div className="font-medium text-white text-sm">{b.client.fullName}</div>
                       <div className="font-mono text-[11px] text-[#929090]">{b.client.phone}</div>
-                      <div className="font-mono text-[10px] text-[#666] truncate max-w-[180px]">{b.client.email}</div>
+                      <div className="font-mono text-[10px] text-[#666] truncate max-w-[180px]">
+                        {b.client.email}
+                      </div>
                     </td>
 
                     <td className="p-4">
@@ -200,14 +204,12 @@ export const AdminBookings: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="p-4 font-barlow font-bold text-sm text-white">
-                      {b.price}
-                    </td>
+                    <td className="p-4 font-barlow font-bold text-sm text-white">{b.price}</td>
 
                     <td className="p-4 whitespace-nowrap">
                       <span
                         className={`text-[10px] font-mono uppercase font-bold tracking-wider px-2.5 py-1 rounded border inline-block ${getStatusBadge(
-                          b.status
+                          b.status,
                         )}`}
                       >
                         {b.status}

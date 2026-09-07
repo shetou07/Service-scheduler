@@ -9,7 +9,7 @@ import {
   AppView,
   AdminTab,
   ScheduleEvent,
-  ThemeMode
+  ThemeMode,
 } from '../types';
 import { SERVICES, INITIAL_BOOKINGS, INITIAL_SCHEDULE_EVENTS } from '../data/mockData';
 
@@ -86,7 +86,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const toggleTheme = () => {
-    setThemeState(prev => {
+    setThemeState((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       localStorage.setItem('cr_theme', next);
       return next;
@@ -120,7 +120,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     email: '',
     phone: '',
     goals: '',
-    injuries: ''
+    injuries: '',
   });
   const [selectedDate, setSelectedDate] = useState<string>('2024-10-24');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('08:00 AM');
@@ -164,7 +164,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem('cr_schedule_events', JSON.stringify(scheduleEvents));
   }, [scheduleEvents]);
 
-  const selectedService = SERVICES.find(s => s.id === selectedServiceId) || SERVICES[0];
+  const selectedService = SERVICES.find((s) => s.id === selectedServiceId) || SERVICES[0];
 
   const openBookingModal = (serviceId?: ServiceId) => {
     if (serviceId) {
@@ -186,7 +186,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       email: '',
       phone: '',
       goals: '',
-      injuries: ''
+      injuries: '',
     });
     setSelectedDate('2024-10-24');
     setSelectedTimeSlot('08:00 AM');
@@ -227,29 +227,47 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       price: selectedService.priceLabel,
       location: 'Coach Rickie Studio, Lugogo Bypass, Kampala',
       createdAt: new Date().toISOString(),
-      notes: clientDetails.goals || undefined
+      notes: clientDetails.goals || undefined,
     };
 
-    setBookings(prev => [newBooking, ...prev]);
+    setBookings((prev) => [newBooking, ...prev]);
     setCurrentConfirmedBooking(newBooking);
 
     // Also add to schedule events for the admin calendar
-    const dayOfWeekNumber = new Date(selectedDate).getDay() === 0 ? 7 : new Date(selectedDate).getDay();
+    const dayOfWeekNumber =
+      new Date(selectedDate).getDay() === 0 ? 7 : new Date(selectedDate).getDay();
     const newEvent: ScheduleEvent = {
       id: `ev-${Date.now()}`,
       title: selectedService.name,
-      type: selectedService.id === 'personal' ? 'PT' : selectedService.id === 'public' ? 'PUB' : selectedService.id === 'smash' ? 'SMR' : 'REC',
+      type:
+        selectedService.id === 'personal'
+          ? 'PT'
+          : selectedService.id === 'public'
+            ? 'PUB'
+            : selectedService.id === 'smash'
+              ? 'SMR'
+              : 'REC',
       serviceName: selectedService.name,
       dayOfWeek: dayOfWeekNumber,
       date: selectedDate,
       startTime: selectedTimeSlot.split(' ')[0],
       endTime: endTime.split(' ')[0],
       clientName: clientDetails.fullName || 'New Athlete',
-      colorBg: selectedService.id === 'personal' ? '#1e2329' : selectedService.id === 'public' ? '#3d1a11' : '#2a0e0e',
-      colorBorder: selectedService.id === 'personal' ? '#60a5fa' : selectedService.id === 'public' ? '#ff5625' : '#ffb4ab',
-      colorText: '#ffffff'
+      colorBg:
+        selectedService.id === 'personal'
+          ? '#1e2329'
+          : selectedService.id === 'public'
+            ? '#3d1a11'
+            : '#2a0e0e',
+      colorBorder:
+        selectedService.id === 'personal'
+          ? '#60a5fa'
+          : selectedService.id === 'public'
+            ? '#ff5625'
+            : '#ffb4ab',
+      colorText: '#ffffff',
     };
-    setScheduleEvents(prev => [...prev, newEvent]);
+    setScheduleEvents((prev) => [...prev, newEvent]);
 
     // Trigger celebration confetti
     try {
@@ -257,7 +275,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#ff5625', '#ffffff', '#ffb4ab', '#e5e2e1']
+        colors: ['#ff5625', '#ffffff', '#ffb4ab', '#e5e2e1'],
       });
     } catch (e) {
       console.error(e);
@@ -268,20 +286,18 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateBookingStatus = (bookingId: string, status: Booking['status']) => {
-    setBookings(prev =>
-      prev.map(b => (b.id === bookingId ? { ...b, status } : b))
-    );
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, status } : b)));
   };
 
   const cancelBooking = (bookingId: string) => {
-    setBookings(prev =>
-      prev.map(b => (b.id === bookingId ? { ...b, status: 'Cancelled' } : b))
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: 'Cancelled' } : b)),
     );
   };
 
   const getBookingByReference = (ref: string): Booking | undefined => {
     const cleanRef = ref.trim().toUpperCase();
-    return bookings.find(b => b.referenceNumber.toUpperCase() === cleanRef);
+    return bookings.find((b) => b.referenceNumber.toUpperCase() === cleanRef);
   };
 
   const searchBookingRef = (ref: string): boolean => {
@@ -297,13 +313,13 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addScheduleEvent = (event: Omit<ScheduleEvent, 'id'>) => {
     const newEvent: ScheduleEvent = {
       ...event,
-      id: `ev-${Date.now()}`
+      id: `ev-${Date.now()}`,
     };
-    setScheduleEvents(prev => [...prev, newEvent]);
+    setScheduleEvents((prev) => [...prev, newEvent]);
   };
 
   const deleteScheduleEvent = (id: string) => {
-    setScheduleEvents(prev => prev.filter(e => e.id !== id));
+    setScheduleEvents((prev) => prev.filter((e) => e.id !== id));
   };
 
   return (
@@ -344,7 +360,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setIsLookupModalOpen,
         lookupRefResult,
         searchBookingRef,
-        services: SERVICES
+        services: SERVICES,
       }}
     >
       {children}

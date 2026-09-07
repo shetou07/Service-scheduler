@@ -2,7 +2,9 @@
   "name": "coach-rickie-scheduling",
   "private": true,
   "packageManager": "npm@10.9.2",
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=@coach-rickie/api\" \"npm run dev --workspace=@coach-rickie/web\"",
     "build": "npm run build --workspaces",
@@ -12,5 +14,8 @@
     "db:migrate": "npm run prisma:migrate --workspace=@coach-rickie/api",
     "db:seed": "npm run prisma:seed --workspace=@coach-rickie/api"
   },
-  "devDependencies": { "concurrently": "^9.1.2" }
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.6.2"
+  }
 }

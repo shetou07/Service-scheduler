@@ -143,12 +143,14 @@ model Notification {
   bookingId String
   recipient String
   type NotificationType
+  payload Json?
   status NotificationStatus @default(PENDING)
   sentAt DateTime?
   retryCount Int @default(0)
   errorMessage String?
   createdAt DateTime @default(now())
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  @@index([status, createdAt])
 }
 
 model AuditLog {

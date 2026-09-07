@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { User, Phone, Mail, Target, AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  User,
+  Phone,
+  Mail,
+  Target,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
 
 export const Step2ClientDetails: React.FC = () => {
   const { clientDetails, setClientDetails, setBookingStep, selectedService } = useBooking();
@@ -41,12 +50,12 @@ export const Step2ClientDetails: React.FC = () => {
           Athlete Profile & Bio
         </h2>
         <p className="text-sm text-[#929090] mt-1">
-          Providing these details allows Coach Rickie to prepare custom gear and tailor drills to your level.
+          Providing these details allows Coach Rickie to prepare custom gear and tailor drills to
+          your level.
         </p>
       </div>
 
       <div className="bg-[#1c1b1b] border border-[#2a2a2a] p-4 sm:p-6 cut-corner space-y-5">
-        
         {/* Full Name */}
         <div>
           <label className="block text-xs font-mono uppercase tracking-wider text-[#c6c6c7] mb-2 flex items-center gap-1.5">
@@ -62,10 +71,14 @@ export const Step2ClientDetails: React.FC = () => {
               if (errors.fullName) setErrors((prev) => ({ ...prev, fullName: '' }));
             }}
             className={`w-full bg-[#121212] border ${
-              errors.fullName ? 'border-red-500 ring-1 ring-red-500' : 'border-[#353534] focus:border-[#ff5625]'
+              errors.fullName
+                ? 'border-red-500 ring-1 ring-red-500'
+                : 'border-[#353534] focus:border-[#ff5625]'
             } text-white px-4 py-3 text-sm rounded outline-none transition-colors placeholder:text-[#555]`}
           />
-          {errors.fullName && <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.fullName}</p>}
+          {errors.fullName && (
+            <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.fullName}</p>
+          )}
         </div>
 
         {/* Contact Grid: Phone & Email */}
@@ -89,11 +102,15 @@ export const Step2ClientDetails: React.FC = () => {
                   if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
                 }}
                 className={`w-full bg-[#121212] border ${
-                  errors.phone ? 'border-red-500 ring-1 ring-red-500' : 'border-[#353534] focus:border-[#ff5625]'
+                  errors.phone
+                    ? 'border-red-500 ring-1 ring-red-500'
+                    : 'border-[#353534] focus:border-[#ff5625]'
                 } text-white px-4 py-3 text-sm rounded-r outline-none transition-colors placeholder:text-[#555]`}
               />
             </div>
-            {errors.phone && <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.phone}</p>}
+            {errors.phone && (
+              <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.phone}</p>
+            )}
           </div>
 
           <div>
@@ -110,10 +127,14 @@ export const Step2ClientDetails: React.FC = () => {
                 if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
               }}
               className={`w-full bg-[#121212] border ${
-                errors.email ? 'border-red-500 ring-1 ring-red-500' : 'border-[#353534] focus:border-[#ff5625]'
+                errors.email
+                  ? 'border-red-500 ring-1 ring-red-500'
+                  : 'border-[#353534] focus:border-[#ff5625]'
               } text-white px-4 py-3 text-sm rounded outline-none transition-colors placeholder:text-[#555]`}
             />
-            {errors.email && <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-400 text-xs mt-1.5 font-mono">{errors.email}</p>
+            )}
           </div>
         </div>
 
@@ -127,8 +148,8 @@ export const Step2ClientDetails: React.FC = () => {
             rows={2}
             placeholder={
               selectedService.id === 'smash'
-                ? "e.g. Venting work stress, explosive hammer strikes"
-                : "e.g. Explosive sprint power, hypertrophy, core strength"
+                ? 'e.g. Venting work stress, explosive hammer strikes'
+                : 'e.g. Explosive sprint power, hypertrophy, core strength'
             }
             value={clientDetails.goals}
             onChange={(e) => setClientDetails((prev) => ({ ...prev, goals: e.target.value }))}
@@ -154,7 +175,10 @@ export const Step2ClientDetails: React.FC = () => {
         {/* Security badge */}
         <div className="flex items-center gap-2 text-xs text-[#929090] bg-[#121212] p-3 rounded border border-[#2a2a2a]">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Your biometric & contact data is strictly confidential and used solely for workout preparation.</span>
+          <span>
+            Your biometric & contact data is strictly confidential and used solely for workout
+            preparation.
+          </span>
         </div>
       </div>
 

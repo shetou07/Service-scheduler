@@ -11,7 +11,7 @@ import {
   Dumbbell,
   Zap,
   Trash2,
-  Clock
+  Clock,
 } from 'lucide-react';
 
 interface NewEventFormState {
@@ -38,7 +38,7 @@ export const AdminCalendar: React.FC = () => {
     dayIndex: 0,
     startTime: '08:00',
     endTime: '09:00',
-    clientName: ''
+    clientName: '',
   });
 
   const weekDays = [
@@ -48,13 +48,25 @@ export const AdminCalendar: React.FC = () => {
     { name: 'SUN', date: '27', fullDate: '2024-10-27', isToday: false, dayOfWeek: 7 },
     { name: 'MON', date: '28', fullDate: '2024-10-28', isToday: false, dayOfWeek: 1 },
     { name: 'TUE', date: '29', fullDate: '2024-10-29', isToday: false, dayOfWeek: 2 },
-    { name: 'WED', date: '30', fullDate: '2024-10-30', isToday: false, dayOfWeek: 3 }
+    { name: 'WED', date: '30', fullDate: '2024-10-30', isToday: false, dayOfWeek: 3 },
   ];
 
   const hours = [
-    '06:00', '07:00', '08:00', '09:00', '10:00',
-    '11:00', '12:00', '13:00', '14:00', '15:00',
-    '16:00', '17:00', '18:00', '19:00', '20:00'
+    '06:00',
+    '07:00',
+    '08:00',
+    '09:00',
+    '10:00',
+    '11:00',
+    '12:00',
+    '13:00',
+    '14:00',
+    '15:00',
+    '16:00',
+    '17:00',
+    '18:00',
+    '19:00',
+    '20:00',
   ];
 
   const handleCreateEvent = (e: React.FormEvent) => {
@@ -89,7 +101,7 @@ export const AdminCalendar: React.FC = () => {
       clientName: newEvent.clientName || undefined,
       colorBg: bg,
       colorBorder: border,
-      colorText: text
+      colorText: text,
     });
 
     setIsAddEventModalOpen(false);
@@ -97,7 +109,6 @@ export const AdminCalendar: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
       {/* Calendar Header Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -135,7 +146,9 @@ export const AdminCalendar: React.FC = () => {
             <button
               onClick={() => setViewMode('week')}
               className={`px-3 py-1 text-xs font-mono uppercase rounded ${
-                viewMode === 'week' ? 'bg-[#ff5625] text-black font-bold' : 'text-[#929090] hover:text-white'
+                viewMode === 'week'
+                  ? 'bg-[#ff5625] text-black font-bold'
+                  : 'text-[#929090] hover:text-white'
               }`}
             >
               Week
@@ -143,7 +156,9 @@ export const AdminCalendar: React.FC = () => {
             <button
               onClick={() => setViewMode('day')}
               className={`px-3 py-1 text-xs font-mono uppercase rounded ${
-                viewMode === 'day' ? 'bg-[#ff5625] text-black font-bold' : 'text-[#929090] hover:text-white'
+                viewMode === 'day'
+                  ? 'bg-[#ff5625] text-black font-bold'
+                  : 'text-[#929090] hover:text-white'
               }`}
             >
               Day
@@ -185,7 +200,6 @@ export const AdminCalendar: React.FC = () => {
       {/* Weekly Grid */}
       <div className="bg-[#181818] border border-[#2a2a2a] cut-corner overflow-x-auto shadow-2xl">
         <div className="min-w-[850px]">
-          
           {/* Day Headers */}
           <div className="grid grid-cols-8 border-b border-[#2a2a2a] bg-[#1f1f1f] sticky top-0 z-10">
             <div className="p-3 text-center text-xs font-mono text-[#929090] uppercase border-r border-[#2a2a2a]">
@@ -225,7 +239,8 @@ export const AdminCalendar: React.FC = () => {
                   {weekDays.map((day, dIdx) => {
                     // Match events that start at this hour or span it
                     const dayEvents = scheduleEvents.filter((ev) => {
-                      const evDateMatch = ev.date === day.fullDate || ev.dayOfWeek === day.dayOfWeek;
+                      const evDateMatch =
+                        ev.date === day.fullDate || ev.dayOfWeek === day.dayOfWeek;
                       const evHour = parseInt(ev.startTime.split(':')[0], 10);
                       return evDateMatch && evHour === hourInt;
                     });
@@ -238,7 +253,7 @@ export const AdminCalendar: React.FC = () => {
                             ...prev,
                             dayIndex: dIdx,
                             startTime: hour,
-                            endTime: `${(hourInt + 1).toString().padStart(2, '0')}:00`
+                            endTime: `${(hourInt + 1).toString().padStart(2, '0')}:00`,
                           }));
                           setIsAddEventModalOpen(true);
                         }}
@@ -253,7 +268,7 @@ export const AdminCalendar: React.FC = () => {
                             style={{
                               backgroundColor: ev.colorBg,
                               borderColor: ev.colorBorder,
-                              color: ev.colorText
+                              color: ev.colorText,
                             }}
                             className="w-full h-full min-h-[52px] p-2 rounded border cut-corner-sm text-xs shadow-md flex flex-col justify-between group/ev"
                           >
@@ -274,7 +289,11 @@ export const AdminCalendar: React.FC = () => {
                               <span>
                                 {ev.startTime} - {ev.endTime}
                               </span>
-                              {ev.clientName && <span className="font-bold truncate max-w-[60px]">{ev.clientName}</span>}
+                              {ev.clientName && (
+                                <span className="font-bold truncate max-w-[60px]">
+                                  {ev.clientName}
+                                </span>
+                              )}
                               {ev.attendees && <span>{ev.attendees}</span>}
                             </div>
                           </div>
@@ -293,7 +312,6 @@ export const AdminCalendar: React.FC = () => {
               );
             })}
           </div>
-
         </div>
       </div>
 
@@ -307,7 +325,9 @@ export const AdminCalendar: React.FC = () => {
 
             <form onSubmit={handleCreateEvent} className="space-y-4 text-xs">
               <div>
-                <label className="block text-mono uppercase text-[#929090] mb-1">Session Title</label>
+                <label className="block text-mono uppercase text-[#929090] mb-1">
+                  Session Title
+                </label>
                 <input
                   type="text"
                   value={newEvent.title}
@@ -318,7 +338,9 @@ export const AdminCalendar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-mono uppercase text-[#929090] mb-1">Type / Category</label>
+                <label className="block text-mono uppercase text-[#929090] mb-1">
+                  Type / Category
+                </label>
                 <select
                   value={newEvent.type}
                   onChange={(e) => {
@@ -341,7 +363,9 @@ export const AdminCalendar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-mono uppercase text-[#929090] mb-1">Start Time</label>
+                  <label className="block text-mono uppercase text-[#929090] mb-1">
+                    Start Time
+                  </label>
                   <input
                     type="text"
                     value={newEvent.startTime}
@@ -363,7 +387,9 @@ export const AdminCalendar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-mono uppercase text-[#929090] mb-1">Client Name (Optional)</label>
+                <label className="block text-mono uppercase text-[#929090] mb-1">
+                  Client Name (Optional)
+                </label>
                 <input
                   type="text"
                   value={newEvent.clientName}
@@ -392,7 +418,6 @@ export const AdminCalendar: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

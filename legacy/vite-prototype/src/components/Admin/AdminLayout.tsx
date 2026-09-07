@@ -18,7 +18,7 @@ import {
   ArrowLeft,
   Flame,
   Sun,
-  Moon
+  Moon,
 } from 'lucide-react';
 
 export const AdminLayout: React.FC = () => {
@@ -29,24 +29,18 @@ export const AdminLayout: React.FC = () => {
     { id: 'bookings', label: 'Bookings', icon: <ClipboardList className="w-4 h-4" /> },
     { id: 'calendar', label: 'Calendar', icon: <Calendar className="w-4 h-4" /> },
     { id: 'availability', label: 'Availability', icon: <Clock className="w-4 h-4" /> },
-    { id: 'clients', label: 'Athletes', icon: <Users className="w-4 h-4" /> }
+    { id: 'clients', label: 'Athletes', icon: <Users className="w-4 h-4" /> },
   ];
 
   return (
     <div className="min-h-screen bg-[#121212] text-[#e5e2e1] flex flex-col md:flex-row">
-      
       {/* Sidebar Navigation */}
       <aside className="w-full md:w-64 bg-[#181818] border-b md:border-b-0 md:border-r border-[#2a2a2a] p-5 flex flex-col justify-between shrink-0">
         <div className="space-y-6">
-          
           {/* Coach Profile Widget */}
           <div className="flex items-center gap-3 p-3 bg-[#131313] border border-[#2a2a2a] cut-corner-sm">
             <div className="w-11 h-11 rounded-full overflow-hidden border border-[#ff5625] shrink-0">
-              <img
-                src={COACH_AVATAR}
-                alt="Coach Rickie"
-                className="w-full h-full object-cover"
-              />
+              <img src={COACH_AVATAR} alt="Coach Rickie" className="w-full h-full object-cover" />
             </div>
             <div className="min-w-0">
               <div className="font-barlow font-bold text-lg uppercase text-white tracking-wider truncate flex items-center gap-1">
@@ -90,7 +84,11 @@ export const AdminLayout: React.FC = () => {
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             <span className="flex items-center gap-2">
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-blue-500" />
+              )}
               <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
             </span>
             <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 bg-[#222] rounded text-[#999]">
@@ -124,7 +122,6 @@ export const AdminLayout: React.FC = () => {
         {adminTab === 'availability' && <AdminAvailability />}
         {adminTab === 'clients' && <AdminClients />}
       </main>
-
     </div>
   );
 };

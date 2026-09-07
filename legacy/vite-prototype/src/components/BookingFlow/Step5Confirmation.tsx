@@ -1,9 +1,24 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { Check, Copy, Calendar, Download, Share2, MapPin, Dumbbell, ArrowRight } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  Calendar,
+  Download,
+  Share2,
+  MapPin,
+  Dumbbell,
+  ArrowRight,
+} from 'lucide-react';
 
 export const Step5Confirmation: React.FC = () => {
-  const { currentConfirmedBooking, closeBookingModal, resetBookingForm, setIsLookupModalOpen, setAppView } = useBooking();
+  const {
+    currentConfirmedBooking,
+    closeBookingModal,
+    resetBookingForm,
+    setIsLookupModalOpen,
+    setAppView,
+  } = useBooking();
   const [copied, setCopied] = useState(false);
 
   const booking = currentConfirmedBooking;
@@ -55,12 +70,11 @@ END:VCALENDAR`;
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 
   return (
     <div className="space-y-6 text-center sm:text-left relative overflow-hidden">
-      
       {/* Locked In Stamp Effect */}
       <div className="absolute right-2 top-2 sm:right-6 sm:top-4 border-4 border-[#ff5625] text-[#ff5625] font-barlow font-black text-2xl sm:text-3xl uppercase tracking-widest px-4 py-1.5 rotate-[-8deg] opacity-80 pointer-events-none select-none shadow-lg">
         LOCKED IN
@@ -79,7 +93,8 @@ END:VCALENDAR`;
           <span className="text-[#ff5625]">SEE YOU ON THE MAT.</span>
         </h2>
         <p className="text-sm text-[#c6c6c7] mt-2 max-w-lg">
-          A confirmation SMS and calendar invite has been dispatched. Please arrive 10 minutes prior for warm-up and equipment fitting.
+          A confirmation SMS and calendar invite has been dispatched. Please arrive 10 minutes prior
+          for warm-up and equipment fitting.
         </p>
       </div>
 
@@ -120,11 +135,15 @@ END:VCALENDAR`;
             <span className="font-barlow font-bold text-base text-white uppercase tracking-wide">
               {booking.serviceName}
             </span>
-            <span className="text-[10px] font-mono text-[#ff5625] block mt-0.5">{booking.serviceTag}</span>
+            <span className="text-[10px] font-mono text-[#ff5625] block mt-0.5">
+              {booking.serviceTag}
+            </span>
           </div>
 
           <div className="bg-[#141414] p-3 rounded border border-[#2a2a2a]">
-            <span className="text-[10px] font-mono uppercase text-[#929090] block">Date & Time</span>
+            <span className="text-[10px] font-mono uppercase text-[#929090] block">
+              Date & Time
+            </span>
             <span className="font-barlow font-bold text-base text-white uppercase tracking-wide">
               {formattedDate}
             </span>
@@ -136,7 +155,9 @@ END:VCALENDAR`;
           <div className="bg-[#141414] p-3 rounded border border-[#2a2a2a]">
             <span className="text-[10px] font-mono uppercase text-[#929090] block">Athlete</span>
             <span className="font-medium text-white block text-sm">{booking.client.fullName}</span>
-            <span className="text-[10px] font-mono text-[#929090] block mt-0.5">{booking.client.phone}</span>
+            <span className="text-[10px] font-mono text-[#929090] block mt-0.5">
+              {booking.client.phone}
+            </span>
           </div>
 
           <div className="bg-[#141414] p-3 rounded border border-[#2a2a2a]">
@@ -145,7 +166,9 @@ END:VCALENDAR`;
               <MapPin className="w-3.5 h-3.5 text-[#ff5625] shrink-0" />
               <span className="truncate">{booking.location}</span>
             </div>
-            <span className="text-[10px] text-[#929090] block mt-0.5">Free Locker & Hydration provided</span>
+            <span className="text-[10px] text-[#929090] block mt-0.5">
+              Free Locker & Hydration provided
+            </span>
           </div>
         </div>
       </div>

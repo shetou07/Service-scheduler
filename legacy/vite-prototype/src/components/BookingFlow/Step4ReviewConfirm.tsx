@@ -1,6 +1,17 @@
 import React from 'react';
 import { useBooking } from '../../context/BookingContext';
-import { CheckCircle2, MapPin, Calendar, Clock, User, Phone, Mail, ArrowLeft, Shield, Edit2 } from 'lucide-react';
+import {
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  ArrowLeft,
+  Shield,
+  Edit2,
+} from 'lucide-react';
 
 export const Step4ReviewConfirm: React.FC = () => {
   const {
@@ -9,14 +20,14 @@ export const Step4ReviewConfirm: React.FC = () => {
     selectedDate,
     selectedTimeSlot,
     setBookingStep,
-    confirmBooking
+    confirmBooking,
   } = useBooking();
 
   const formattedDate = new Date(selectedDate).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 
   return (
@@ -40,7 +51,6 @@ export const Step4ReviewConfirm: React.FC = () => {
       </div>
 
       <div className="bg-[#1c1b1b] border border-[#2a2a2a] cut-corner overflow-hidden divide-y divide-[#2a2a2a]">
-        
         {/* Service Header Overview */}
         <div className="p-4 sm:p-5 flex items-center justify-between gap-4 bg-gradient-to-r from-[#201f1f] to-[#1c1b1b]">
           <div className="flex items-center gap-4">
@@ -56,7 +66,9 @@ export const Step4ReviewConfirm: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 bg-[#ff5625]/20 text-[#ff5625] border border-[#ff5625]/30 rounded">
                   {selectedService.tag}
                 </span>
-                <span className="text-xs font-mono text-[#929090]">{selectedService.durationLabel}</span>
+                <span className="text-xs font-mono text-[#929090]">
+                  {selectedService.durationLabel}
+                </span>
               </div>
               <h3 className="font-barlow font-bold text-2xl uppercase text-white tracking-wide mt-1">
                 {selectedService.name}
@@ -133,16 +145,24 @@ export const Step4ReviewConfirm: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-[#141414] p-3.5 rounded border border-[#2a2a2a]">
             <div>
-              <span className="text-[#929090] block text-[10px] uppercase font-mono">Full Name</span>
-              <span className="text-white font-medium">{clientDetails.fullName || 'Brian Mukasa'}</span>
+              <span className="text-[#929090] block text-[10px] uppercase font-mono">
+                Full Name
+              </span>
+              <span className="text-white font-medium">
+                {clientDetails.fullName || 'Brian Mukasa'}
+              </span>
             </div>
             <div>
               <span className="text-[#929090] block text-[10px] uppercase font-mono">Phone</span>
-              <span className="text-white font-mono">{clientDetails.phone || '+256 772 458 912'}</span>
+              <span className="text-white font-mono">
+                {clientDetails.phone || '+256 772 458 912'}
+              </span>
             </div>
             <div>
               <span className="text-[#929090] block text-[10px] uppercase font-mono">Email</span>
-              <span className="text-white font-mono truncate block">{clientDetails.email || 'brian.mukasa@gmail.com'}</span>
+              <span className="text-white font-mono truncate block">
+                {clientDetails.email || 'brian.mukasa@gmail.com'}
+              </span>
             </div>
           </div>
 
@@ -155,7 +175,8 @@ export const Step4ReviewConfirm: React.FC = () => {
               )}
               {clientDetails.injuries && (
                 <div>
-                  <strong className="text-amber-400">Notes/Restrictions:</strong> {clientDetails.injuries}
+                  <strong className="text-amber-400">Notes/Restrictions:</strong>{' '}
+                  {clientDetails.injuries}
                 </div>
               )}
             </div>
@@ -166,11 +187,15 @@ export const Step4ReviewConfirm: React.FC = () => {
         <div className="p-4 sm:p-5 bg-[#171717] flex items-center justify-between">
           <div>
             <span className="text-xs font-mono text-[#929090] uppercase block">Total Due</span>
-            <span className="text-xs text-[#c6c6c7]">Pay at check-in or via monthly membership pass</span>
+            <span className="text-xs text-[#c6c6c7]">
+              Pay at check-in or via monthly membership pass
+            </span>
           </div>
           <div className="text-right">
             <span className="font-barlow font-black text-2xl sm:text-3xl text-[#ff5625] tracking-wide">
-              {selectedService.price === 0 ? 'FREE / PASS' : `UGX ${selectedService.price.toLocaleString()}`}
+              {selectedService.price === 0
+                ? 'FREE / PASS'
+                : `UGX ${selectedService.price.toLocaleString()}`}
             </span>
           </div>
         </div>
