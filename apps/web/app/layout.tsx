@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import { CookieConsent } from '../components/cookie-consent';
+import { SiteFooter } from '../components/site-footer';
 import { ThemeToggle } from '../components/theme-toggle';
 import './globals.css';
 
@@ -11,6 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <body>
         <div className="app-shell">{children}</div>
+        <SiteFooter />
+        <CookieConsent />
         <ThemeToggle />
       </body>
     </html>

@@ -126,6 +126,8 @@ model Booking {
   bookedAt DateTime @default(now())
   cancelledAt DateTime?
   completedAt DateTime?
+  termsAcceptedAt DateTime?
+  privacyAcceptedAt DateTime?
   manageTokenHash String?
   manageTokenExpiresAt DateTime?
   createdAt DateTime @default(now())

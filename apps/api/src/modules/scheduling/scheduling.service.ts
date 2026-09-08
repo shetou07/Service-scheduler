@@ -474,7 +474,13 @@ export class SchedulingService {
     fullName: string;
     email: string;
     phone: string;
+    termsAccepted: boolean;
   }) {
+    if (!input.termsAccepted) {
+      throw new BadRequestException(
+        'You must accept the Terms and Conditions to complete a booking',
+      );
+    }
     const now = new Date();
     const email = input.email.trim().toLowerCase();
     return this.db.$transaction(async (tx) => {
@@ -512,6 +518,8 @@ export class SchedulingService {
           clientId: client.id,
           serviceId: svc.id,
           slotId: slot.id,
+          termsAcceptedAt: now,
+          privacyAcceptedAt: now,
           manageTokenHash: crypto.createHash('sha256').update(token).digest('hex'),
           manageTokenExpiresAt: new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30),
         },

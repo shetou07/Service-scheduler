@@ -30,6 +30,7 @@ function BookingFlow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const selectedService = useMemo(
     () => services.find((service) => service.id === serviceId),
     [services, serviceId],
@@ -84,7 +85,7 @@ function BookingFlow() {
       const response = await fetch(`${api}/bookings`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...details, serviceId, slotId }),
+        body: JSON.stringify({ ...details, serviceId, slotId, termsAccepted: acceptedTerms }),
       });
       const result = await response.json();
       if (!response.ok)
@@ -291,11 +292,26 @@ function BookingFlow() {
             Your slot is checked again when you confirm. You’ll receive a secure booking-management
             link by email.
           </p>
+          <label className="consent-field">
+            <input
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+              type="checkbox"
+            />
+            <span>
+              I agree to the <Link href="/terms">Terms and Conditions</Link> and acknowledge the{' '}
+              <Link href="/privacy">Privacy Policy</Link>.
+            </span>
+          </label>
           <div className="flow-actions">
             <button className="button button--secondary cut-corner" onClick={() => setStep(2)}>
               Back
             </button>
-            <button className="button cut-corner" disabled={loading} onClick={confirmBooking}>
+            <button
+              className="button cut-corner"
+              disabled={loading || !acceptedTerms}
+              onClick={confirmBooking}
+            >
               {loading ? 'Confirming…' : 'Confirm booking'}
             </button>
           </div>

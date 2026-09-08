@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import {
   ArrayNotEmpty,
+  Equals,
   IsArray,
   IsBoolean,
   IsEmail,
@@ -34,6 +35,7 @@ class BookingDto {
   @IsString() @IsNotEmpty() fullName!: string;
   @IsEmail() email!: string;
   @IsString() @IsNotEmpty() phone!: string;
+  @IsBoolean() @Equals(true) termsAccepted!: boolean;
 }
 class ServiceDto {
   @IsString() @MinLength(2) name!: string;
