@@ -21,13 +21,18 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  const stopNotifications = await startNotificationProcessor();
-  const shutdown = async () => {
-    await stopNotifications();
-    await app.close();
-  };
-  process.once('SIGINT', () => void shutdown());
-  process.once('SIGTERM', () => void shutdown());
   await app.listen(process.env.PORT || 4000, '0.0.0.0');
+  void startNotificationProcessor()
+    .then((stopNotifications) => {
+      const shutdown = async () => {
+        await stopNotifications();
+        await app.close();
+      };
+      process.once('SIGINT', () => void shutdown());
+      process.once('SIGTERM', () => void shutdown());
+    })
+    .catch((error: unknown) => {
+      console.error('Notification processor failed to start', error);
+    });
 }
 bootstrap();
