@@ -17,10 +17,16 @@ type Booking = {
   service: { name: string };
   slot: { startAt: string };
 };
+type WhatsAppQr = {
+  status: 'DISABLED' | 'INITIALIZING' | 'WAITING_FOR_QR' | 'READY' | 'DISCONNECTED' | 'ERROR';
+  qrDataUrl?: string;
+  message?: string;
+};
 
 export default function AdminOverviewPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [whatsApp, setWhatsApp] = useState<WhatsAppQr | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
     void Promise.all([
@@ -32,6 +38,19 @@ export default function AdminOverviewPage() {
         setBookings(nextBookings.slice(0, 6));
       })
       .catch((reason: Error) => setError(reason.message));
+  }, []);
+  useEffect(() => {
+    let active = true;
+    const load = () =>
+      adminFetch<WhatsAppQr>('/admin/whatsapp/qr')
+        .then((state) => active && setWhatsApp(state))
+        .catch(() => undefined);
+    load();
+    const interval = window.setInterval(load, 5_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
   return (
     <>
@@ -65,6 +84,32 @@ export default function AdminOverviewPage() {
             <strong>{report.utilization}%</strong>
           </article>
         </div>
+      )}
+      {whatsApp && (
+        <section className="data-panel cut-corner">
+          <div className="panel-heading">
+            <div>
+              <h2>WhatsApp alerts</h2>
+              <p className="muted">Status: {whatsApp.status.replaceAll('_', ' ')}</p>
+            </div>
+          </div>
+          {whatsApp.status === 'WAITING_FOR_QR' && whatsApp.qrDataUrl ? (
+            <div>
+              <p className="text-secondary">
+                On +250 792 831 227, open WhatsApp, choose Linked devices, then scan this code.
+              </p>
+              <img alt="WhatsApp linked-device QR code" src={whatsApp.qrDataUrl} width={360} height={360} />
+            </div>
+          ) : whatsApp.message ? (
+            <p className="form-error">{whatsApp.message}</p>
+          ) : (
+            <p className="muted">
+              {whatsApp.status === 'READY'
+                ? 'The studio WhatsApp sender is connected.'
+                : 'Waiting for the WhatsApp session to initialise.'}
+            </p>
+          )}
+        </section>
       )}
       <section className="data-panel cut-corner">
         <div className="panel-heading">

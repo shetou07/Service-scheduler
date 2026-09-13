@@ -14,6 +14,7 @@ import { SchedulingService } from './modules/scheduling/scheduling.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactController } from './modules/contact/contact.controller';
 import { ContactService } from './modules/contact/contact.service';
+import { AdminWhatsAppController } from './modules/notifications/admin-whatsapp.controller';
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
   controllers: [
@@ -25,6 +26,7 @@ import { ContactService } from './modules/contact/contact.service';
     ManageBookingController,
     AdminOperationsController,
     ContactController,
+    AdminWhatsAppController,
   ],
   providers: [PrismaService, SchedulingService, ContactService],
 })

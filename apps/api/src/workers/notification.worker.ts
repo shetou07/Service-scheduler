@@ -11,10 +11,19 @@ import { Resend } from 'resend';
 import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Client, Message, RemoteAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
+import * as QRCode from 'qrcode';
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 import * as path from 'path';
+import {
+  setWhatsAppQr,
+  setWhatsAppQrDisconnected,
+  setWhatsAppQrDisabled,
+  setWhatsAppQrError,
+  setWhatsAppQrInitializing,
+  setWhatsAppQrReady,
+} from '../modules/notifications/whatsapp-qr';
 
 const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
@@ -201,6 +210,7 @@ function r2Config() {
 function createWhatsAppClient() {
   if (!whatsappEnabled()) {
     console.log('WhatsApp notifications are disabled');
+    setWhatsAppQrDisabled();
     return null;
   }
 
@@ -208,6 +218,7 @@ function createWhatsAppClient() {
   if (!senderNumber) throw new Error('WHATSAPP_SENDER_NUMBER is required when WhatsApp is enabled');
   const r2 = r2Config();
   console.log(`Starting WhatsApp session with Cloudflare R2 bucket ${r2.bucket}`);
+  setWhatsAppQrInitializing();
   const s3 = new S3Client({
     region: 'auto',
     endpoint: r2.endpoint,
@@ -234,21 +245,32 @@ function createWhatsAppClient() {
   client.on('qr', (qr) => {
     console.log(`Scan this QR code in WhatsApp Linked devices for ${senderNumber}:`);
     qrcode.generate(qr, { small: true });
+    void QRCode.toDataURL(qr, { errorCorrectionLevel: 'M', margin: 2, width: 360 })
+      .then(setWhatsAppQr)
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        setWhatsAppQrError(`Could not generate the WhatsApp QR image: ${message}`);
+      });
   });
   client.on('disconnected', (reason) => {
     console.error('WhatsApp session disconnected', reason);
+    setWhatsAppQrDisconnected(String(reason));
   });
   client.on('ready', () => {
     console.log(`WhatsApp sender ${senderNumber} is ready`);
+    setWhatsAppQrReady();
   });
   client.on('remote_session_saved', () => {
     console.log('WhatsApp session backup saved to Cloudflare R2');
   });
   client.on('auth_failure', (message) => {
     console.error('WhatsApp authentication failed', message);
+    setWhatsAppQrError(`WhatsApp authentication failed: ${message}`);
   });
   void client.initialize().catch((error: unknown) => {
     console.error('WhatsApp failed to initialize', error);
+    const message = error instanceof Error ? error.message : String(error);
+    setWhatsAppQrError(`WhatsApp failed to initialize: ${message}`);
   });
   return client;
 }
