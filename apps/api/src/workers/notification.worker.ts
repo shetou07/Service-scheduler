@@ -14,7 +14,7 @@ import qrcode from 'qrcode-terminal';
 import { createReadStream, createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
-import path from 'path';
+import * as path from 'path';
 
 const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
