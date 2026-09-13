@@ -45,6 +45,11 @@ enum NotificationStatus {
   FAILED
 }
 
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
 model Admin {
   id String @id @default(uuid())
   name String
@@ -145,14 +150,18 @@ model Notification {
   bookingId String
   recipient String
   type NotificationType
+  channel NotificationChannel @default(EMAIL)
   payload Json?
   status NotificationStatus @default(PENDING)
   sentAt DateTime?
   retryCount Int @default(0)
   errorMessage String?
+  providerMessageId String? @unique
+  providerStatus String?
   createdAt DateTime @default(now())
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   @@index([status, createdAt])
+  @@index([channel, status, createdAt])
 }
 
 model AuditLog {

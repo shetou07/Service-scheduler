@@ -1,4 +1,5 @@
 import { ServiceStatus } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { SchedulingService } from './scheduling.service';
 
@@ -7,6 +8,7 @@ describe('SchedulingService bulk availability', () => {
     service: { findUnique: jest.fn() },
     availability: { findMany: jest.fn() },
   } as unknown as PrismaService;
+  const config = { get: jest.fn() } as unknown as ConfigService;
   const input = {
     serviceId: 'service-1',
     startDate: '2026-09-07',
@@ -32,7 +34,7 @@ describe('SchedulingService bulk availability', () => {
       .mockResolvedValue([
         { date: new Date('2026-09-09T00:00:00.000Z'), startTime: '09:00', endTime: '10:00' },
       ]);
-    const result = await new SchedulingService(db).previewBulkAvailability(input);
+    const result = await new SchedulingService(db, config).previewBulkAvailability(input);
     expect(result.matchingDates).toEqual(['2026-09-07', '2026-09-09', '2026-09-11']);
     expect(result.creatableDates).toEqual(['2026-09-07', '2026-09-11']);
     expect(result.skipped).toEqual([
@@ -44,11 +46,19 @@ describe('SchedulingService bulk availability', () => {
 
   it('rejects a date range that ends before it begins', async () => {
     await expect(
-      new SchedulingService(db).previewBulkAvailability({
+      new SchedulingService(db, config).previewBulkAvailability({
         ...input,
         startDate: '2026-09-13',
         endDate: '2026-09-07',
       }),
     ).rejects.toThrow('End date must be on or after start date');
+  });
+
+  it('does not enable WhatsApp alerts when required configuration is missing', () => {
+    config.get = jest.fn((key: string) => (key === 'WHATSAPP_ENABLED' ? 'true' : undefined));
+    const service = new SchedulingService(db, config);
+    expect((service as unknown as { whatsAppEnabled: () => boolean }).whatsAppEnabled()).toBe(
+      false,
+    );
   });
 });

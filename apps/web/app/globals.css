@@ -265,6 +265,39 @@ select {
   padding: 5rem 0;
   max-width: 780px;
 }
+.about-hero {
+  border-bottom: 1px solid var(--border);
+}
+.about-hero__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+  align-items: center;
+  gap: 3rem;
+  padding: 5rem 0;
+}
+.about-hero h1 {
+  max-width: 760px;
+  margin: 0.7rem 0 1.15rem;
+  color: var(--heading);
+  font-size: clamp(2.9rem, 7vw, 5.8rem);
+  line-height: 0.93;
+  text-transform: uppercase;
+}
+.about-hero p {
+  max-width: 56ch;
+  margin: 0 0 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+.about-hero__image {
+  min-height: 430px;
+  border: 1px solid var(--border);
+  background-image:
+    linear-gradient(180deg, transparent 48%, var(--bg) 100%), url('/images/coach-rickie-hero.jpg');
+  background-position: 50% top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
 .hero h1 {
   margin: 0.7rem 0 1.25rem;
   color: var(--heading);
@@ -948,8 +981,16 @@ select {
 }
 @media (max-width: 700px) {
   .feature-split,
-  .contact-grid {
+  .contact-grid,
+  .about-hero__content {
     grid-template-columns: 1fr;
+  }
+  .about-hero__content {
+    gap: 1.5rem;
+    padding: 3.5rem 0;
+  }
+  .about-hero__image {
+    min-height: 300px;
   }
   .feature-stamp {
     min-height: 170px;

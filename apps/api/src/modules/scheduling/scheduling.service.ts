@@ -4,9 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   AvailabilityStatus,
   BookingStatus,
+  NotificationChannel,
   Prisma,
   ServiceStatus,
   SlotStatus,
@@ -27,7 +29,10 @@ type BulkAvailabilityInput = {
 const transactionOptions = { maxWait: 10000, timeout: 20000 };
 @Injectable()
 export class SchedulingService {
-  constructor(private db: PrismaService) {}
+  constructor(
+    private db: PrismaService,
+    private config: ConfigService,
+  ) {}
   async services() {
     return this.db.service.findMany({ where: { status: 'ACTIVE' }, orderBy: { name: 'asc' } });
   }
@@ -534,7 +539,25 @@ export class SchedulingService {
           payload: { manageToken: token },
         },
       });
+      if (this.whatsAppEnabled()) {
+        await tx.notification.create({
+          data: {
+            bookingId: booking.id,
+            recipient: this.config.getOrThrow<string>('ADMIN_WHATSAPP_RECIPIENT'),
+            type: 'BOOKING_CONFIRMED',
+            channel: NotificationChannel.WHATSAPP,
+          },
+        });
+      }
       return { ...booking, manageToken: token };
     }, transactionOptions);
+  }
+
+  private whatsAppEnabled() {
+    return (
+      this.config.get<string>('WHATSAPP_ENABLED') === 'true' &&
+      Boolean(this.config.get<string>('WHATSAPP_SENDER_NUMBER')) &&
+      Boolean(this.config.get<string>('ADMIN_WHATSAPP_RECIPIENT'))
+    );
   }
 }

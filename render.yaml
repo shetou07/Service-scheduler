@@ -8,10 +8,9 @@ services:
     healthCheckPath: /api/health
   - type: worker
     name: coach-rickie-worker
-    env: node
-    rootDir: .
-    buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace=@coach-rickie/api
-    startCommand: npm run start:worker --workspace=@coach-rickie/api
+    env: docker
+    dockerfilePath: ./apps/api/Dockerfile.worker
+    dockerContext: .
   - type: web
     name: coach-rickie-web
     env: node

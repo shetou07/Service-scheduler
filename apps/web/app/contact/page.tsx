@@ -55,6 +55,9 @@ export default function ContactPage() {
             <Link className="header-link" href="/">
               Home
             </Link>
+            <Link className="header-link" href="/about">
+              About
+            </Link>
             <Link className="button cut-corner-sm" href="/book">
               Book session
             </Link>
@@ -75,15 +78,11 @@ export default function ContactPage() {
               <div className="contact-details">
                 <div>
                   <span>Call or WhatsApp</span>
-                  <a href="tel:+256772100200">+256 772 100 200</a>
+                  <a href="tel:+256765463811">+256 765 463 811</a>
                 </div>
                 <div>
                   <span>Location</span>
-                  <p>
-                    Coach Rickie Studio
-                    <br />
-                    Lugogo Bypass, Kampala, Uganda
-                  </p>
+                  <p>Coach Rickie Studio</p>
                 </div>
                 <div>
                   <span>Visiting</span>

@@ -36,6 +36,9 @@ export default function Home() {
             COACH RICKIE<span>.</span>
           </Link>
           <nav className="site-header__actions" aria-label="Primary navigation">
+            <Link className="header-link" href="/about">
+              About
+            </Link>
             <Link className="header-link" href="/contact">
               Contact
             </Link>

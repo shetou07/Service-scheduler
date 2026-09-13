@@ -34,9 +34,11 @@ export default function PrivacyPage() {
           content: (
             <p>
               Authorised Coach Rickie administrators and service providers that host our
-              application, database, and transactional email may process information only as needed
-              to provide the service. Data may be processed outside Uganda with appropriate
-              safeguards where required.
+              application, database, transactional email, and WhatsApp messaging providers may
+              process information only as needed to provide the service. WhatsApp alerts for new
+              bookings are sent only to authorised studio administrators and contain limited booking
+              details. Data may be processed outside Uganda with appropriate safeguards where
+              required.
             </p>
           ),
         },

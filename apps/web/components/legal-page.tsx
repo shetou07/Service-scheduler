@@ -31,7 +31,7 @@ export function LegalPage({
           <div className="eyebrow">{eyebrow}</div>
           <h1 className="section-title">{title}</h1>
           <p className="legal-page__intro text-secondary">{intro}</p>
-          <p className="muted">Effective date: 8 September 2026</p>
+          <p className="muted">Effective date: 11 September 2026</p>
           {sections.map((section) => (
             <section className="legal-page__section" key={section.title}>
               <h2>{section.title}</h2>
@@ -40,7 +40,7 @@ export function LegalPage({
           ))}
           <p className="legal-page__contact">
             Questions or requests? Please use our <Link href="/contact">contact page</Link> or call
-            +256 772 100 200.
+            +256 765 463 811.
           </p>
         </article>
       </main>

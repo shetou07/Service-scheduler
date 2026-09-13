@@ -1,7 +1,15 @@
 import { Job, Queue, Worker } from 'bullmq';
 import IORedis from 'ioredis';
-import { NotificationStatus, NotificationType, Prisma, PrismaClient } from '@prisma/client';
+import {
+  NotificationChannel,
+  NotificationStatus,
+  NotificationType,
+  Prisma,
+  PrismaClient,
+} from '@prisma/client';
 import { Resend } from 'resend';
+import { Client, LocalAuth, Message } from 'whatsapp-web.js';
+import qrcode from 'qrcode-terminal';
 
 const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
@@ -27,11 +35,15 @@ function appointmentTime(value: Date) {
   });
 }
 
+function publicAppUrl() {
+  return (process.env.PUBLIC_APP_URL || process.env.APP_URL?.split(',')[0])?.replace(/\/$/, '');
+}
+
 function emailFor(notification: NotificationRecord) {
   const { booking } = notification;
   const when = appointmentTime(booking.slot.startAt);
   const manage = manageToken(notification.payload);
-  const appUrl = process.env.APP_URL?.replace(/\/$/, '');
+  const appUrl = publicAppUrl();
   const manageLink =
     manage && appUrl
       ? `<p><a href="${appUrl}/manage-booking/${manage}">Manage this booking</a></p>`
@@ -58,6 +70,80 @@ function emailFor(notification: NotificationRecord) {
   };
 }
 
+function whatsappEnabled() {
+  return process.env.WHATSAPP_ENABLED === 'true';
+}
+
+function whatsappRecipient(value: string) {
+  const recipient = value.replace(/\D/g, '');
+  if (!recipient) throw new Error('ADMIN_WHATSAPP_RECIPIENT must contain a phone number');
+  return `${recipient}@c.us`;
+}
+
+function whatsappMessage(notification: NotificationRecord) {
+  if (notification.type !== NotificationType.BOOKING_CONFIRMED) {
+    throw new Error(`Unsupported WhatsApp notification type: ${notification.type}`);
+  }
+  const booking = notification.booking;
+  const appUrl = publicAppUrl();
+  return [
+    'New booking confirmed',
+    `Client: ${booking.client.fullName}`,
+    `Service: ${booking.service.name}`,
+    `Time: ${appointmentTime(booking.slot.startAt)}`,
+    `Reference: ${booking.bookingReference}`,
+    `Manage bookings: ${appUrl ? `${appUrl}/admin/bookings` : 'Admin bookings'}`,
+  ].join('\n');
+}
+
+async function createWhatsAppClient() {
+  if (!whatsappEnabled()) return null;
+
+  const senderNumber = process.env.WHATSAPP_SENDER_NUMBER;
+  if (!senderNumber) throw new Error('WHATSAPP_SENDER_NUMBER is required when WhatsApp is enabled');
+
+  const client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: 'coach-rickie-notifications',
+      dataPath: process.env.WHATSAPP_AUTH_PATH || '.whatsapp-auth',
+    }),
+    puppeteer: {
+      headless: true,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    },
+  });
+
+  let ready = false;
+  client.on('qr', (qr) => {
+    console.log(`Scan this QR code in WhatsApp Linked devices for ${senderNumber}:`);
+    qrcode.generate(qr, { small: true });
+  });
+  client.on('disconnected', (reason) => {
+    console.error('WhatsApp session disconnected', reason);
+    if (ready) process.exit(1);
+  });
+  await new Promise<void>((resolve, reject) => {
+    client.once('ready', () => {
+      ready = true;
+      console.log(`WhatsApp sender ${senderNumber} is ready`);
+      resolve();
+    });
+    client.once('auth_failure', (message) => reject(new Error(`WhatsApp authentication failed: ${message}`)));
+    void client.initialize().catch(reject);
+  });
+  return client;
+}
+
+async function sendWhatsApp(client: Client | null, notification: NotificationRecord) {
+  if (!client) throw new Error('WhatsApp notifications are disabled');
+  const sent = await client.sendMessage(
+    whatsappRecipient(notification.recipient),
+    whatsappMessage(notification),
+  );
+  return sent.id._serialized;
+}
+
 async function main() {
   const redisUrl = process.env.REDIS_URL;
   const resendKey = process.env.RESEND_API_KEY;
@@ -69,6 +155,14 @@ async function main() {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   const queue = new Queue<NotificationJob>(queueName, { connection });
   const resend = new Resend(resendKey);
+  const whatsapp = await createWhatsAppClient();
+  whatsapp?.on('message_ack', (message: Message, ack: number) => {
+    const providerStatus = ['pending', 'sent', 'delivered', 'read', 'played'][ack] || 'sent';
+    void prisma.notification.updateMany({
+      where: { providerMessageId: message.id._serialized },
+      data: { status: NotificationStatus.SENT, providerStatus, errorMessage: null },
+    });
+  });
   const enqueue = (notificationId: string) =>
     queue.add(
       'deliver',
@@ -99,20 +193,28 @@ async function main() {
         include: { booking: { include: { client: true, service: true, slot: true } } },
       });
       if (!notification || notification.status === NotificationStatus.SENT) return;
-      const email = emailFor(notification);
-      const result = await resend.emails.send({
-        from: emailFrom,
-        to: notification.recipient,
-        subject: email.subject,
-        html: email.html,
-      });
-      if (result.error) throw new Error(result.error.message);
+      const isWhatsApp = notification.channel === NotificationChannel.WHATSAPP;
+      let providerMessageId: string | undefined;
+      if (isWhatsApp) {
+        providerMessageId = await sendWhatsApp(whatsapp, notification);
+      } else {
+        const email = emailFor(notification);
+        const result = await resend.emails.send({
+          from: emailFrom,
+          to: notification.recipient,
+          subject: email.subject,
+          html: email.html,
+        });
+        if (result.error) throw new Error(result.error.message);
+      }
       await prisma.notification.update({
         where: { id: notification.id },
         data: {
           status: NotificationStatus.SENT,
           sentAt: new Date(),
           errorMessage: null,
+          providerMessageId,
+          providerStatus: isWhatsApp ? 'sent' : null,
           payload: Prisma.DbNull,
         },
       });
@@ -144,6 +246,7 @@ async function main() {
     await worker.close();
     await queue.close();
     await connection.quit();
+    await whatsapp?.destroy();
     await prisma.$disconnect();
   };
   process.once('SIGINT', () => {
