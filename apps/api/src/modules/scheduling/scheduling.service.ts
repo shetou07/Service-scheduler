@@ -557,7 +557,12 @@ export class SchedulingService {
     return (
       this.config.get<string>('WHATSAPP_ENABLED') === 'true' &&
       Boolean(this.config.get<string>('WHATSAPP_SENDER_NUMBER')) &&
-      Boolean(this.config.get<string>('ADMIN_WHATSAPP_RECIPIENT'))
+      Boolean(this.config.get<string>('ADMIN_WHATSAPP_RECIPIENT')) &&
+      Boolean(this.config.get<string>('WHATSAPP_R2_ACCOUNT_ID')) &&
+      Boolean(this.config.get<string>('WHATSAPP_R2_ACCESS_KEY_ID')) &&
+      Boolean(this.config.get<string>('WHATSAPP_R2_SECRET_ACCESS_KEY')) &&
+      Boolean(this.config.get<string>('WHATSAPP_R2_BUCKET')) &&
+      Boolean(this.config.get<string>('WHATSAPP_R2_ENDPOINT'))
     );
   }
 }

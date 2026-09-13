@@ -1,19 +1,13 @@
 services:
   - type: web
     name: coach-rickie-api
-    env: node
-    rootDir: .
-    buildCommand: npm ci --include=dev && npm run db:generate && npm run build --workspace=@coach-rickie/api
-    startCommand: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma && npm run start --workspace=@coach-rickie/api
-    healthCheckPath: /api/health
-  - type: worker
-    name: coach-rickie-worker
-    env: docker
-    dockerfilePath: ./apps/api/Dockerfile.worker
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
+    healthCheckPath: /api/health
   - type: web
     name: coach-rickie-web
-    env: node
+    runtime: node
     rootDir: .
     buildCommand: npm ci --include=dev && npm run build --workspace=@coach-rickie/web
     startCommand: npm run start --workspace=@coach-rickie/web

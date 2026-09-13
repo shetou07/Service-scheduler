@@ -8,8 +8,16 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { Resend } from 'resend';
-import { Client, LocalAuth, Message } from 'whatsapp-web.js';
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { Client, Message, RemoteAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
+
+// The package does not currently publish a useful TypeScript declaration for its store.
+// Its runtime API is the RemoteAuth Store interface documented by whatsapp-web.js.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { AwsS3Store } = require('wwebjs-aws-s3') as {
+  AwsS3Store: new (options: Record<string, unknown>) => unknown;
+};
 
 const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
@@ -96,16 +104,48 @@ function whatsappMessage(notification: NotificationRecord) {
   ].join('\n');
 }
 
-async function createWhatsAppClient() {
+function r2Config() {
+  const accountId = process.env.WHATSAPP_R2_ACCOUNT_ID;
+  const accessKeyId = process.env.WHATSAPP_R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.WHATSAPP_R2_SECRET_ACCESS_KEY;
+  const bucket = process.env.WHATSAPP_R2_BUCKET;
+  const endpoint = process.env.WHATSAPP_R2_ENDPOINT;
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !endpoint) {
+    throw new Error(
+      'WHATSAPP_R2_ACCOUNT_ID, WHATSAPP_R2_ACCESS_KEY_ID, WHATSAPP_R2_SECRET_ACCESS_KEY, WHATSAPP_R2_BUCKET, and WHATSAPP_R2_ENDPOINT are required when WhatsApp is enabled',
+    );
+  }
+  return { accountId, accessKeyId, secretAccessKey, bucket, endpoint };
+}
+
+function createWhatsAppClient() {
   if (!whatsappEnabled()) return null;
 
   const senderNumber = process.env.WHATSAPP_SENDER_NUMBER;
   if (!senderNumber) throw new Error('WHATSAPP_SENDER_NUMBER is required when WhatsApp is enabled');
+  const r2 = r2Config();
+  const s3 = new S3Client({
+    region: 'auto',
+    endpoint: r2.endpoint,
+    forcePathStyle: true,
+    credentials: { accessKeyId: r2.accessKeyId, secretAccessKey: r2.secretAccessKey },
+  });
+  const store = new AwsS3Store({
+    bucketName: r2.bucket,
+    remoteDataPath: 'whatsapp-sessions',
+    s3Client: s3,
+    putObjectCommand: PutObjectCommand,
+    headObjectCommand: HeadObjectCommand,
+    getObjectCommand: GetObjectCommand,
+    deleteObjectCommand: DeleteObjectCommand,
+  });
 
   const client = new Client({
-    authStrategy: new LocalAuth({
+    authStrategy: new RemoteAuth({
       clientId: 'coach-rickie-notifications',
-      dataPath: process.env.WHATSAPP_AUTH_PATH || '.whatsapp-auth',
+      dataPath: process.env.WHATSAPP_AUTH_PATH || '/tmp/whatsapp-auth',
+      store: store as NonNullable<ConstructorParameters<typeof RemoteAuth>[0]>['store'],
+      backupSyncIntervalMs: 60_000,
     }),
     puppeteer: {
       headless: true,
@@ -114,23 +154,24 @@ async function createWhatsAppClient() {
     },
   });
 
-  let ready = false;
   client.on('qr', (qr) => {
     console.log(`Scan this QR code in WhatsApp Linked devices for ${senderNumber}:`);
     qrcode.generate(qr, { small: true });
   });
   client.on('disconnected', (reason) => {
     console.error('WhatsApp session disconnected', reason);
-    if (ready) process.exit(1);
   });
-  await new Promise<void>((resolve, reject) => {
-    client.once('ready', () => {
-      ready = true;
-      console.log(`WhatsApp sender ${senderNumber} is ready`);
-      resolve();
-    });
-    client.once('auth_failure', (message) => reject(new Error(`WhatsApp authentication failed: ${message}`)));
-    void client.initialize().catch(reject);
+  client.on('ready', () => {
+    console.log(`WhatsApp sender ${senderNumber} is ready`);
+  });
+  client.on('remote_session_saved', () => {
+    console.log('WhatsApp session backup saved to Cloudflare R2');
+  });
+  client.on('auth_failure', (message) => {
+    console.error('WhatsApp authentication failed', message);
+  });
+  void client.initialize().catch((error: unknown) => {
+    console.error('WhatsApp failed to initialize', error);
   });
   return client;
 }
@@ -144,7 +185,7 @@ async function sendWhatsApp(client: Client | null, notification: NotificationRec
   return sent.id._serialized;
 }
 
-async function main() {
+export async function startNotificationProcessor() {
   const redisUrl = process.env.REDIS_URL;
   const resendKey = process.env.RESEND_API_KEY;
   const emailFrom = process.env.EMAIL_FROM;
@@ -155,7 +196,7 @@ async function main() {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   const queue = new Queue<NotificationJob>(queueName, { connection });
   const resend = new Resend(resendKey);
-  const whatsapp = await createWhatsAppClient();
+  const whatsapp = createWhatsAppClient();
   whatsapp?.on('message_ack', (message: Message, ack: number) => {
     const providerStatus = ['pending', 'sent', 'delivered', 'read', 'played'][ack] || 'sent';
     void prisma.notification.updateMany({
@@ -241,7 +282,8 @@ async function main() {
       console.error('Notification recovery failed', error),
     );
   }, pollIntervalMs);
-  const shutdown = async () => {
+  console.log('Notification processor is running');
+  return async () => {
     clearInterval(recoveryTimer);
     await worker.close();
     await queue.close();
@@ -249,17 +291,22 @@ async function main() {
     await whatsapp?.destroy();
     await prisma.$disconnect();
   };
-  process.once('SIGINT', () => {
-    void shutdown().then(() => process.exit(0));
-  });
-  process.once('SIGTERM', () => {
-    void shutdown().then(() => process.exit(0));
-  });
-  console.log('Notification worker is running');
 }
 
-void main().catch(async (error: unknown) => {
-  console.error('Notification worker failed to start', error);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+async function main() {
+  const shutdown = await startNotificationProcessor();
+  const exit = async () => {
+    await shutdown();
+    process.exit(0);
+  };
+  process.once('SIGINT', () => void exit());
+  process.once('SIGTERM', () => void exit());
+}
+
+if (require.main === module) {
+  void main().catch(async (error: unknown) => {
+    console.error('Notification processor failed to start', error);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
+}

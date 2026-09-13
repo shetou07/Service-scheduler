@@ -1,10 +1,18 @@
-FROM node:22-alpine AS build
+FROM node:22-bookworm-slim
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends chromium ca-certificates fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . .
-RUN npx prisma generate && npm run build
-FROM node:22-alpine
-WORKDIR /app
-COPY --from=build /app /app
-CMD ["node","dist/main.js"]
+
+RUN npm ci --include=dev \
+    && npm run db:generate \
+    && npm run build --workspace=@coach-rickie/api
+
+CMD ["sh", "-c", "npx prisma migrate deploy --schema apps/api/prisma/schema.prisma && node apps/api/dist/src/main.js"]
