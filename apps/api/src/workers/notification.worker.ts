@@ -119,11 +119,15 @@ function r2Config() {
 }
 
 function createWhatsAppClient() {
-  if (!whatsappEnabled()) return null;
+  if (!whatsappEnabled()) {
+    console.log('WhatsApp notifications are disabled');
+    return null;
+  }
 
   const senderNumber = process.env.WHATSAPP_SENDER_NUMBER;
   if (!senderNumber) throw new Error('WHATSAPP_SENDER_NUMBER is required when WhatsApp is enabled');
   const r2 = r2Config();
+  console.log(`Starting WhatsApp session with Cloudflare R2 bucket ${r2.bucket}`);
   const s3 = new S3Client({
     region: 'auto',
     endpoint: r2.endpoint,
@@ -193,6 +197,7 @@ export async function startNotificationProcessor() {
   if (!resendKey || !emailFrom)
     throw new Error('RESEND_API_KEY and EMAIL_FROM are required for the notification worker');
 
+  console.log('Starting notification processor');
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   const queue = new Queue<NotificationJob>(queueName, { connection });
   const resend = new Resend(resendKey);
