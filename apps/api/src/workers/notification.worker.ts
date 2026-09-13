@@ -11,13 +11,10 @@ import { Resend } from 'resend';
 import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Client, Message, RemoteAuth } from 'whatsapp-web.js';
 import qrcode from 'qrcode-terminal';
-
-// The package does not currently publish a useful TypeScript declaration for its store.
-// Its runtime API is the RemoteAuth Store interface documented by whatsapp-web.js.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { AwsS3Store } = require('wwebjs-aws-s3') as {
-  AwsS3Store: new (options: Record<string, unknown>) => unknown;
-};
+import { createReadStream, createWriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
+import path from 'path';
 
 const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
@@ -28,6 +25,89 @@ type NotificationJob = { notificationId: string };
 type NotificationRecord = Prisma.NotificationGetPayload<{
   include: { booking: { include: { client: true; service: true; slot: true } } };
 }>;
+type SessionReference = { session: string };
+type SessionExtractReference = SessionReference & { path: string };
+
+class R2SessionStore {
+  constructor(
+    private readonly bucket: string,
+    private readonly client: S3Client,
+    private readonly localDataPath: string,
+    private readonly prefix = 'whatsapp-sessions',
+  ) {}
+
+  private key(session: string) {
+    return path.posix.join(this.prefix, `${session}.zip`);
+  }
+
+  private async request<T>(operation: string, run: () => Promise<T>) {
+    try {
+      return await run();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Cloudflare R2 ${operation} failed: ${message}`);
+    }
+  }
+
+  async sessionExists({ session }: SessionReference) {
+    const key = this.key(session);
+    console.log(`Checking Cloudflare R2 session backup: ${key}`);
+    try {
+      await this.client.send(
+        new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
+        { abortSignal: AbortSignal.timeout(15_000) },
+      );
+      console.log('Cloudflare R2 session backup found');
+      return true;
+    } catch (error) {
+      const details = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+      if (
+        details.name === 'NotFound' ||
+        details.name === 'NoSuchKey' ||
+        details.$metadata?.httpStatusCode === 404
+      ) {
+        console.log('No Cloudflare R2 session backup found; QR login is required');
+        return false;
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Cloudflare R2 session check failed: ${message}`);
+    }
+  }
+
+  async save({ session }: SessionReference) {
+    const file = `${session}.zip`;
+    await this.request('session backup upload', () =>
+      this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: this.key(session),
+          Body: createReadStream(path.join(this.localDataPath, file)),
+        }),
+        { abortSignal: AbortSignal.timeout(30_000) },
+      ),
+    );
+  }
+
+  async extract({ session, path: destination }: SessionExtractReference) {
+    const response = await this.request('session backup download', () =>
+      this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: this.key(session) }),
+        { abortSignal: AbortSignal.timeout(30_000) },
+      ),
+    );
+    if (!response.Body) throw new Error('Cloudflare R2 session backup was empty');
+    await pipeline(response.Body as Readable, createWriteStream(destination));
+  }
+
+  async delete({ session }: SessionReference) {
+    await this.request('session backup deletion', () =>
+      this.client.send(
+        new DeleteObjectCommand({ Bucket: this.bucket, Key: this.key(session) }),
+        { abortSignal: AbortSignal.timeout(15_000) },
+      ),
+    );
+  }
+}
 
 function manageToken(payload: Prisma.JsonValue | null) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
@@ -134,20 +214,13 @@ function createWhatsAppClient() {
     forcePathStyle: true,
     credentials: { accessKeyId: r2.accessKeyId, secretAccessKey: r2.secretAccessKey },
   });
-  const store = new AwsS3Store({
-    bucketName: r2.bucket,
-    remoteDataPath: 'whatsapp-sessions',
-    s3Client: s3,
-    putObjectCommand: PutObjectCommand,
-    headObjectCommand: HeadObjectCommand,
-    getObjectCommand: GetObjectCommand,
-    deleteObjectCommand: DeleteObjectCommand,
-  });
+  const authDataPath = process.env.WHATSAPP_AUTH_PATH || '/tmp/whatsapp-auth';
+  const store = new R2SessionStore(r2.bucket, s3, authDataPath);
 
   const client = new Client({
     authStrategy: new RemoteAuth({
       clientId: 'coach-rickie-notifications',
-      dataPath: process.env.WHATSAPP_AUTH_PATH || '/tmp/whatsapp-auth',
+      dataPath: authDataPath,
       store: store as NonNullable<ConstructorParameters<typeof RemoteAuth>[0]>['store'],
       backupSyncIntervalMs: 60_000,
     }),
