@@ -31,6 +31,17 @@ export default function TermsPage() {
           ),
         },
         {
+          title: 'Coach and gym recommendations',
+          content: (
+            <p>
+              A recommendation request is an enquiry, not a booking, medical assessment, guarantee
+              of placement, endorsement, or promise that a particular coach, gym, price, result, or
+              availability will be provided. Any training, gym, or coach arrangement is subject to
+              your own assessment and any separate terms agreed with the relevant provider.
+            </p>
+          ),
+        },
+        {
           title: 'Attendance and conduct',
           content: (
             <p>

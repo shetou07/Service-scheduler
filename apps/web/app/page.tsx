@@ -78,6 +78,17 @@ export default function Home() {
             <div className="eyebrow">Training disciplines</div>
             <h2 className="section-title">What we offer</h2>
             <div className="service-grid">
+              <Link className="service-card cut-corner" href="/coach-gym-recommendation">
+                <div>
+                  <div className="eyebrow">Personalised guidance</div>
+                  <h3>Coach and Gym recommendation</h3>
+                  <p className="text-secondary">
+                    Need help finding the right coach, gym, or training plan? Tell us your goal and
+                    preferred area.
+                  </p>
+                </div>
+                <div className="service-card__price">Request a recommendation →</div>
+              </Link>
               {services.map((service) => (
                 <Link
                   className="service-card cut-corner"

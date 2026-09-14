@@ -15,6 +15,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ContactController } from './modules/contact/contact.controller';
 import { ContactService } from './modules/contact/contact.service';
 import { AdminWhatsAppController } from './modules/notifications/admin-whatsapp.controller';
+import {
+  AdminRecommendationsController,
+  RecommendationsController,
+} from './modules/recommendations/recommendations.controller';
+import { RecommendationsService } from './modules/recommendations/recommendations.service';
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
   controllers: [
@@ -27,7 +32,9 @@ import { AdminWhatsAppController } from './modules/notifications/admin-whatsapp.
     AdminOperationsController,
     ContactController,
     AdminWhatsAppController,
+    RecommendationsController,
+    AdminRecommendationsController,
   ],
-  providers: [PrismaService, SchedulingService, ContactService],
+  providers: [PrismaService, SchedulingService, ContactService, RecommendationsService],
 })
 export class AppModule {}

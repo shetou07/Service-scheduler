@@ -340,6 +340,45 @@ async function sendWhatsApp(notification: NotificationRecord) {
   return result.key.id;
 }
 
+export async function deliverRecommendationWhatsApp(requestId: string) {
+  const request = await prisma.recommendationRequest.findUnique({ where: { id: requestId } });
+  if (!request || request.whatsAppStatus === NotificationStatus.SENT) return;
+  try {
+    if (!whatsappEnabled()) throw new Error('WhatsApp notifications are disabled');
+    const recipient = process.env.ADMIN_WHATSAPP_RECIPIENT;
+    if (!recipient) throw new Error('ADMIN_WHATSAPP_RECIPIENT is not configured');
+    if (!whatsappSocket) throw new Error('WhatsApp is not connected');
+    const message = [
+      'New coach & gym recommendation request',
+      `Name: ${request.fullName}`,
+      `Phone: ${request.phone}`,
+      `Email: ${request.email || 'Not provided'}`,
+      `Preferred gym location: ${request.gymLocation}`,
+      `Service needed: ${request.serviceNeed}`,
+      `Goal: ${request.goal}`,
+    ].join('\n');
+    const result = await whatsappSocket.sendMessage(whatsappRecipient(recipient), {
+      text: message,
+    });
+    if (!result?.key.id) throw new Error('WhatsApp did not return a message ID');
+    await prisma.recommendationRequest.update({
+      where: { id: request.id },
+      data: {
+        whatsAppStatus: NotificationStatus.SENT,
+        whatsAppSentAt: new Date(),
+        whatsAppError: null,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Recommendation WhatsApp alert ${requestId} failed`, error);
+    await prisma.recommendationRequest.update({
+      where: { id: requestId },
+      data: { whatsAppStatus: NotificationStatus.FAILED, whatsAppError: message.slice(0, 2_000) },
+    });
+  }
+}
+
 export async function deliverNotification(notificationId: string) {
   const notification = await prisma.notification.findUnique({
     where: { id: notificationId },

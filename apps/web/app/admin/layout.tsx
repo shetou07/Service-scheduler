@@ -12,6 +12,7 @@ const nav = [
   { href: '/admin/availability', label: 'Availability' },
   { href: '/admin/services', label: 'Services' },
   { href: '/admin/clients', label: 'Athletes' },
+  { href: '/admin/recommendations', label: 'Recommendations' },
   { href: '/admin/reports', label: 'Reports' },
 ];
 type Admin = { name: string; email: string; role: string };

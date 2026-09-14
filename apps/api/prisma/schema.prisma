@@ -50,6 +50,12 @@ enum NotificationChannel {
   WHATSAPP
 }
 
+enum RecommendationStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
 model Admin {
   id String @id @default(uuid())
   name String
@@ -162,6 +168,25 @@ model Notification {
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   @@index([status, createdAt])
   @@index([channel, status, createdAt])
+}
+
+model RecommendationRequest {
+  id String @id @default(uuid())
+  fullName String
+  email String?
+  phone String
+  gymLocation String
+  serviceNeed String
+  goal String
+  privacyAcceptedAt DateTime
+  status RecommendationStatus @default(NEW)
+  whatsAppStatus NotificationStatus @default(PENDING)
+  whatsAppSentAt DateTime?
+  whatsAppError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, createdAt])
+  @@index([whatsAppStatus, createdAt])
 }
 
 model AuditLog {

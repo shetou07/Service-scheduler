@@ -31,7 +31,7 @@ export function LegalPage({
           <div className="eyebrow">{eyebrow}</div>
           <h1 className="section-title">{title}</h1>
           <p className="legal-page__intro text-secondary">{intro}</p>
-          <p className="muted">Effective date: 11 September 2026</p>
+          <p className="muted">Effective date: 14 September 2026</p>
           {sections.map((section) => (
             <section className="legal-page__section" key={section.title}>
               <h2>{section.title}</h2>
