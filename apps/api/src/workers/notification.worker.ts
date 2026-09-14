@@ -1,5 +1,3 @@
-import { Job, Queue, Worker } from 'bullmq';
-import IORedis from 'ioredis';
 import {
   NotificationChannel,
   NotificationStatus,
@@ -8,6 +6,7 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import {
   DisconnectReason,
   makeWASocket,
@@ -30,11 +29,7 @@ import {
   setWhatsAppQrReady,
 } from '../modules/notifications/whatsapp-qr';
 
-const queueName = 'coach-rickie-notifications';
-const retryAttempts = 5;
-const pollIntervalMs = Number(process.env.NOTIFICATION_POLL_MS || 30_000);
 const prisma = new PrismaClient();
-type NotificationJob = { notificationId: string };
 type NotificationRecord = Prisma.NotificationGetPayload<{
   include: { booking: { include: { client: true; service: true; slot: true } } };
 }>;
@@ -88,6 +83,40 @@ function emailFor(notification: NotificationRecord) {
     subject: `Booking confirmed — ${booking.bookingReference}`,
     html: `<p>Hello ${booking.client.fullName},</p><p>Your ${booking.service.name} booking is confirmed for ${when}.</p><p>Reference: <strong>${booking.bookingReference}</strong></p>${manageLink}`,
   };
+}
+
+async function sendEmail(notification: NotificationRecord) {
+  const email = emailFor(notification);
+  const gmailUser = process.env.GMAIL_SMTP_USER;
+  const gmailAppPassword = process.env.GMAIL_SMTP_APP_PASSWORD;
+  if (gmailUser || gmailAppPassword) {
+    if (!gmailUser || !gmailAppPassword)
+      throw new Error('GMAIL_SMTP_USER and GMAIL_SMTP_APP_PASSWORD must both be set');
+    const result = await nodemailer
+      .createTransport({ service: 'gmail', auth: { user: gmailUser, pass: gmailAppPassword } })
+      .sendMail({
+        from: `Coach Rickie <${gmailUser}>`,
+        to: notification.recipient,
+        subject: email.subject,
+        html: email.html,
+      });
+    return result.messageId;
+  }
+
+  const resendKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM;
+  if (!resendKey || !emailFrom)
+    throw new Error(
+      'Configure Gmail SMTP or set RESEND_API_KEY and EMAIL_FROM to send email notifications',
+    );
+  const result = await new Resend(resendKey).emails.send({
+    from: emailFrom,
+    to: notification.recipient,
+    subject: email.subject,
+    html: email.html,
+  });
+  if (result.error) throw new Error(result.error.message);
+  return result.data?.id;
 }
 function whatsappEnabled() {
   return process.env.WHATSAPP_ENABLED === 'true';
@@ -307,119 +336,57 @@ async function sendWhatsApp(notification: NotificationRecord) {
   return result.key.id;
 }
 
-export async function startNotificationProcessor() {
-  const redisUrl = process.env.REDIS_URL;
-  const resendKey = process.env.RESEND_API_KEY;
-  const emailFrom = process.env.EMAIL_FROM;
-  if (!redisUrl) throw new Error('REDIS_URL is required for the notification processor');
-  if (!resendKey || !emailFrom)
-    throw new Error('RESEND_API_KEY and EMAIL_FROM are required for the notification processor');
-  console.log('Starting notification processor');
-  const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
-  const queue = new Queue<NotificationJob>(queueName, { connection });
-  const resend = new Resend(resendKey);
-  await createWhatsAppClient();
-  const enqueue = (notificationId: string) =>
-    queue.add(
-      'deliver',
-      { notificationId },
-      {
-        jobId: notificationId,
-        attempts: retryAttempts,
-        backoff: { type: 'exponential', delay: 5_000 },
-        removeOnComplete: 1_000,
-        removeOnFail: 1_000,
-      },
-    );
-  const recoverPending = async () => {
-    const pending = await prisma.notification.findMany({
-      where: { status: NotificationStatus.PENDING },
-      select: { id: true },
-      orderBy: { createdAt: 'asc' },
-      take: 100,
-    });
-    await Promise.all(pending.map((notification) => enqueue(notification.id)));
-  };
-  const worker = new Worker<NotificationJob>(
-    queueName,
-    async (job) => {
-      const notification = await prisma.notification.findUnique({
-        where: { id: job.data.notificationId },
-        include: { booking: { include: { client: true, service: true, slot: true } } },
-      });
-      if (!notification || notification.status === NotificationStatus.SENT) return;
-      const isWhatsApp = notification.channel === NotificationChannel.WHATSAPP;
-      let providerMessageId: string | undefined;
-      if (isWhatsApp) providerMessageId = await sendWhatsApp(notification);
-      else {
-        const email = emailFor(notification);
-        const result = await resend.emails.send({
-          from: emailFrom,
-          to: notification.recipient,
-          subject: email.subject,
-          html: email.html,
-        });
-        if (result.error) throw new Error(result.error.message);
-      }
-      await prisma.notification.update({
-        where: { id: notification.id },
-        data: {
-          status: NotificationStatus.SENT,
-          sentAt: new Date(),
-          errorMessage: null,
-          providerMessageId,
-          providerStatus: isWhatsApp ? 'sent' : null,
-          payload: Prisma.DbNull,
-        },
-      });
-    },
-    { connection, concurrency: 5 },
-  );
-  worker.on('failed', (job: Job<NotificationJob> | undefined, error) => {
-    if (!job) return;
-    const finalAttempt = job.attemptsMade >= (job.opts.attempts || 1);
-    void prisma.notification.updateMany({
-      where: { id: job.data.notificationId, status: NotificationStatus.PENDING },
-      data: {
-        status: finalAttempt ? NotificationStatus.FAILED : NotificationStatus.PENDING,
-        retryCount: job.attemptsMade,
-        errorMessage: error.message.slice(0, 2_000),
-      },
-    });
+export async function deliverNotification(notificationId: string) {
+  const notification = await prisma.notification.findUnique({
+    where: { id: notificationId },
+    include: { booking: { include: { client: true, service: true, slot: true } } },
   });
-  await recoverPending();
-  const recoveryTimer = setInterval(
-    () =>
-      void recoverPending().catch((error: unknown) =>
-        console.error('Notification recovery failed', error),
-      ),
-    pollIntervalMs,
-  );
-  console.log('Notification processor is running');
+  if (!notification || notification.status === NotificationStatus.SENT) return;
+
+  try {
+    const isWhatsApp = notification.channel === NotificationChannel.WHATSAPP;
+    let providerMessageId: string | undefined;
+    if (isWhatsApp) {
+      providerMessageId = await sendWhatsApp(notification);
+    } else {
+      providerMessageId = await sendEmail(notification);
+    }
+
+    await prisma.notification.update({
+      where: { id: notification.id },
+      data: {
+        status: NotificationStatus.SENT,
+        sentAt: new Date(),
+        errorMessage: null,
+        providerMessageId,
+        providerStatus: 'sent',
+        payload: Prisma.DbNull,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Notification ${notificationId} failed`, error);
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        status: NotificationStatus.FAILED,
+        retryCount: { increment: 1 },
+        errorMessage: message.slice(0, 2_000),
+        providerStatus: 'failed',
+      },
+    });
+  }
+}
+
+export async function startNotificationDelivery() {
+  console.log('Starting direct notification delivery');
+  await createWhatsAppClient();
+  console.log('Direct notification delivery is ready');
   return async () => {
-    clearInterval(recoveryTimer);
     clearTimeout(reconnectTimer);
     clearTimeout(backupTimer);
-    await worker.close();
-    await queue.close();
-    await connection.quit();
     whatsappSocket?.end(undefined);
     whatsappSocket = null;
     await prisma.$disconnect();
   };
 }
-async function main() {
-  const shutdown = await startNotificationProcessor();
-  const exit = async () => {
-    await shutdown();
-    process.exit(0);
-  };
-  process.once('SIGINT', () => void exit());
-  process.once('SIGTERM', () => void exit());
-}
-if (require.main === module)
-  void main().catch(async (error: unknown) => {
-    console.error('Notification processor failed to start', error);
-    await prisma.$disconnect();
-    process.exit(1);
-  });

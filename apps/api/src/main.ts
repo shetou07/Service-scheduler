@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { startNotificationProcessor } from './workers/notification.worker';
+import { startNotificationDelivery } from './workers/notification.worker';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const allowedOrigins = (process.env.APP_URL || 'http://localhost:3002,http://127.0.0.1:3002')
@@ -22,8 +22,8 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   await app.listen(process.env.PORT || 4000, '0.0.0.0');
-  console.log('Starting background notification processor');
-  void startNotificationProcessor()
+  console.log('Starting direct notification delivery');
+  void startNotificationDelivery()
     .then((stopNotifications) => {
       const shutdown = async () => {
         await stopNotifications();
@@ -33,7 +33,7 @@ async function bootstrap() {
       process.once('SIGTERM', () => void shutdown());
     })
     .catch((error: unknown) => {
-      console.error('Notification processor failed to start', error);
+      console.error('Notification delivery failed to start', error);
     });
 }
 bootstrap();

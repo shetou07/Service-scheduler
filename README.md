@@ -1,6 +1,6 @@
 # Coach Rickie Scheduling System
 
-Production-oriented monorepo: Next.js client portal in `apps/web`, NestJS/Prisma API in `apps/api`, PostgreSQL, Redis, and a notification worker. The original Vite prototype is retained under `legacy/vite-prototype` while its screens are migrated.
+Production-oriented monorepo: Next.js client portal in `apps/web`, NestJS/Prisma API in `apps/api`, PostgreSQL, and direct email/WhatsApp notification delivery. The original Vite prototype is retained under `legacy/vite-prototype` while its screens are migrated.
 
 ## Local setup
 
@@ -11,8 +11,12 @@ Production-oriented monorepo: Next.js client portal in `apps/web`, NestJS/Prisma
 
 The seed admin credentials are configured by `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`. Change them before any shared deployment.
 
+## Email delivery
+
+Set `GMAIL_SMTP_USER` to the company Gmail address and `GMAIL_SMTP_APP_PASSWORD` to a Google App Password to send booking, cancellation, rescheduling, and contact-form emails through Gmail. Gmail is used whenever both values are set; otherwise the app uses Resend (`RESEND_API_KEY` and `EMAIL_FROM`). Enable two-step verification on the Gmail account before creating its App Password. Never use or store the normal Gmail password.
+
 ## WhatsApp admin alerts
 
-When `WHATSAPP_ENABLED=true`, confirmed bookings also create a Redis-backed Baileys notification for `ADMIN_WHATSAPP_RECIPIENT`. The protected admin dashboard displays the initial QR code. Scan it in **Linked devices** from the sender account configured as `WHATSAPP_SENDER_NUMBER` (currently `+250 792 831 227`). New-booking alerts are sent to `+256 765 463 811` and contain the client name, service, Kampala date/time, booking reference, and the protected admin bookings URL only.
+When `WHATSAPP_ENABLED=true`, confirmed bookings create a Baileys notification for `ADMIN_WHATSAPP_RECIPIENT` immediately after the booking commits. The protected admin dashboard displays the initial QR code. Scan it in **Linked devices** from the sender account configured as `WHATSAPP_SENDER_NUMBER` (currently `+250 792 831 227`). New-booking alerts are sent to `+256 765 463 811` and contain the client name, service, Kampala date/time, booking reference, and the protected admin bookings URL only.
 
-The Baileys session credentials are backed up to the private Cloudflare R2 bucket specified by `WHATSAPP_R2_*`; no Render disk or separate worker is required. Do not make the bucket public and do not commit its credentials. Baileys is an unofficial WhatsApp client library, so the official Meta Cloud API remains the preferred option for a public-scale production service.
+The Baileys session credentials are backed up to the private Cloudflare R2 bucket specified by `WHATSAPP_R2_*`; no Render disk, Redis instance, or separate worker is required. Do not make the bucket public and do not commit its credentials. If a provider send fails, the booking remains confirmed and the notification is recorded as failed; direct delivery does not retry automatically. Baileys is an unofficial WhatsApp client library, so the official Meta Cloud API remains the preferred option for a public-scale production service.

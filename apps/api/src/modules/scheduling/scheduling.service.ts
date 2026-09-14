@@ -388,7 +388,7 @@ export class SchedulingService {
   async cancelManagedBooking(token: string) {
     const managed = await this.managedBooking(token);
     this.assertClientChangeAllowed(managed.slot.startAt);
-    return this.db.$transaction(async (tx) => {
+    const result = await this.db.$transaction(async (tx) => {
       const booking = await tx.booking.findUnique({
         where: { id: managed.id },
         include: { slot: true },
@@ -408,17 +408,19 @@ export class SchedulingService {
         where: { id: booking.slotId },
         data: { bookedCount: { decrement: 1 } },
       });
-      await tx.notification.create({
+      const notification = await tx.notification.create({
         data: { bookingId: booking.id, recipient: managed.client.email, type: 'BOOKING_CANCELLED' },
       });
-      return cancelled;
+      return { booking: cancelled, notificationIds: [notification.id] };
     }, transactionOptions);
+    this.deliverNotifications(result.notificationIds);
+    return result.booking;
   }
   async rescheduleManagedBooking(token: string, newSlotId: string) {
     const managed = await this.managedBooking(token);
     this.assertClientChangeAllowed(managed.slot.startAt);
     if (newSlotId === managed.slotId) throw new BadRequestException('Choose a different time slot');
-    return this.db.$transaction(async (tx) => {
+    const result = await this.db.$transaction(async (tx) => {
       const booking = await tx.booking.findUnique({
         where: { id: managed.id },
         include: { slot: true },
@@ -463,15 +465,17 @@ export class SchedulingService {
         where: { id: booking.id },
         data: { slotId: newSlotId },
       });
-      await tx.notification.create({
+      const notification = await tx.notification.create({
         data: {
           bookingId: booking.id,
           recipient: managed.client.email,
           type: 'BOOKING_RESCHEDULED',
         },
       });
-      return updated;
+      return { booking: updated, notificationIds: [notification.id] };
     }, transactionOptions);
+    this.deliverNotifications(result.notificationIds);
+    return result.booking;
   }
   async book(input: {
     serviceId: string;
@@ -488,7 +492,7 @@ export class SchedulingService {
     }
     const now = new Date();
     const email = input.email.trim().toLowerCase();
-    return this.db.$transaction(async (tx) => {
+    const result = await this.db.$transaction(async (tx) => {
       const slots = await tx.$queryRaw<
         {
           id: string;
@@ -531,7 +535,7 @@ export class SchedulingService {
         include: { client: true, service: true, slot: true },
       });
       await tx.timeSlot.update({ where: { id: slot.id }, data: { bookedCount: { increment: 1 } } });
-      await tx.notification.create({
+      const emailNotification = await tx.notification.create({
         data: {
           bookingId: booking.id,
           recipient: client.email,
@@ -539,8 +543,9 @@ export class SchedulingService {
           payload: { manageToken: token },
         },
       });
+      const notificationIds = [emailNotification.id];
       if (this.whatsAppEnabled()) {
-        await tx.notification.create({
+        const whatsappNotification = await tx.notification.create({
           data: {
             bookingId: booking.id,
             recipient: this.config.getOrThrow<string>('ADMIN_WHATSAPP_RECIPIENT'),
@@ -548,9 +553,22 @@ export class SchedulingService {
             channel: NotificationChannel.WHATSAPP,
           },
         });
+        notificationIds.push(whatsappNotification.id);
       }
-      return { ...booking, manageToken: token };
+      return { booking: { ...booking, manageToken: token }, notificationIds };
     }, transactionOptions);
+    this.deliverNotifications(result.notificationIds);
+    return result.booking;
+  }
+
+  private deliverNotifications(notificationIds: string[]) {
+    for (const notificationId of notificationIds) {
+      void import('../../workers/notification.worker')
+        .then(({ deliverNotification }) => deliverNotification(notificationId))
+        .catch((error: unknown) => {
+          console.error(`Could not start notification ${notificationId}`, error);
+        });
+    }
   }
 
   private whatsAppEnabled() {
