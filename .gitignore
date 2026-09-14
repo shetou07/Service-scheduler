@@ -30,3 +30,5 @@ apps/api/node_modules/
 apps/api/.env
 .whatsapp-auth/
 apps/api/.whatsapp-auth/
+.baileys-auth/
+apps/api/.baileys-auth/

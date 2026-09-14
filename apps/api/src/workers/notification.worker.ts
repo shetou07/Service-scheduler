@@ -8,14 +8,19 @@ import {
   PrismaClient,
 } from '@prisma/client';
 import { Resend } from 'resend';
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { Client, Message, RemoteAuth } from 'whatsapp-web.js';
-import qrcode from 'qrcode-terminal';
+import {
+  DisconnectReason,
+  makeWASocket,
+  useMultiFileAuthState,
+  type WASocket,
+} from '@whiskeysockets/baileys';
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as QRCode from 'qrcode';
-import { createReadStream, createWriteStream } from 'fs';
+import { createWriteStream } from 'fs';
+import { mkdir, readFile, readdir, rm } from 'fs/promises';
+import * as path from 'path';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
-import * as path from 'path';
 import {
   setWhatsAppQr,
   setWhatsAppQrDisconnected,
@@ -29,101 +34,22 @@ const queueName = 'coach-rickie-notifications';
 const retryAttempts = 5;
 const pollIntervalMs = Number(process.env.NOTIFICATION_POLL_MS || 30_000);
 const prisma = new PrismaClient();
-
 type NotificationJob = { notificationId: string };
 type NotificationRecord = Prisma.NotificationGetPayload<{
   include: { booking: { include: { client: true; service: true; slot: true } } };
 }>;
-type SessionReference = { session: string };
-type SessionExtractReference = SessionReference & { path: string };
+type R2Config = { accessKeyId: string; secretAccessKey: string; bucket: string; endpoint: string };
+type BaileysManifest = { files: string[] };
 
-class R2SessionStore {
-  constructor(
-    private readonly bucket: string,
-    private readonly client: S3Client,
-    private readonly localDataPath: string,
-    private readonly prefix = 'whatsapp-sessions',
-  ) {}
-
-  private key(session: string) {
-    return path.posix.join(this.prefix, `${session}.zip`);
-  }
-
-  private async request<T>(operation: string, run: () => Promise<T>) {
-    try {
-      return await run();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Cloudflare R2 ${operation} failed: ${message}`);
-    }
-  }
-
-  async sessionExists({ session }: SessionReference) {
-    const key = this.key(session);
-    console.log(`Checking Cloudflare R2 session backup: ${key}`);
-    try {
-      await this.client.send(
-        new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
-        { abortSignal: AbortSignal.timeout(15_000) },
-      );
-      console.log('Cloudflare R2 session backup found');
-      return true;
-    } catch (error) {
-      const details = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-      if (
-        details.name === 'NotFound' ||
-        details.name === 'NoSuchKey' ||
-        details.$metadata?.httpStatusCode === 404
-      ) {
-        console.log('No Cloudflare R2 session backup found; QR login is required');
-        return false;
-      }
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Cloudflare R2 session check failed: ${message}`);
-    }
-  }
-
-  async save({ session }: SessionReference) {
-    const file = `${session}.zip`;
-    await this.request('session backup upload', () =>
-      this.client.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: this.key(session),
-          Body: createReadStream(path.join(this.localDataPath, file)),
-        }),
-        { abortSignal: AbortSignal.timeout(30_000) },
-      ),
-    );
-  }
-
-  async extract({ session, path: destination }: SessionExtractReference) {
-    const response = await this.request('session backup download', () =>
-      this.client.send(
-        new GetObjectCommand({ Bucket: this.bucket, Key: this.key(session) }),
-        { abortSignal: AbortSignal.timeout(30_000) },
-      ),
-    );
-    if (!response.Body) throw new Error('Cloudflare R2 session backup was empty');
-    await pipeline(response.Body as Readable, createWriteStream(destination));
-  }
-
-  async delete({ session }: SessionReference) {
-    await this.request('session backup deletion', () =>
-      this.client.send(
-        new DeleteObjectCommand({ Bucket: this.bucket, Key: this.key(session) }),
-        { abortSignal: AbortSignal.timeout(15_000) },
-      ),
-    );
-  }
-}
+let whatsappSocket: WASocket | null = null;
+let reconnectTimer: NodeJS.Timeout | undefined;
+let backupTimer: NodeJS.Timeout | undefined;
 
 function manageToken(payload: Prisma.JsonValue | null) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
   const token = (payload as Record<string, unknown>).manageToken;
   return typeof token === 'string' ? token : undefined;
 }
-
 function appointmentTime(value: Date) {
   return value.toLocaleString('en-UG', {
     timeZone: 'Africa/Kampala',
@@ -131,11 +57,9 @@ function appointmentTime(value: Date) {
     timeStyle: 'short',
   });
 }
-
 function publicAppUrl() {
   return (process.env.PUBLIC_APP_URL || process.env.APP_URL?.split(',')[0])?.replace(/\/$/, '');
 }
-
 function emailFor(notification: NotificationRecord) {
   const { booking } = notification;
   const when = appointmentTime(booking.slot.startAt);
@@ -145,7 +69,6 @@ function emailFor(notification: NotificationRecord) {
     manage && appUrl
       ? `<p><a href="${appUrl}/manage-booking/${manage}">Manage this booking</a></p>`
       : '';
-
   if (notification.type === NotificationType.BOOKING_CANCELLED)
     return {
       subject: `Booking cancelled — ${booking.bookingReference}`,
@@ -166,21 +89,17 @@ function emailFor(notification: NotificationRecord) {
     html: `<p>Hello ${booking.client.fullName},</p><p>Your ${booking.service.name} booking is confirmed for ${when}.</p><p>Reference: <strong>${booking.bookingReference}</strong></p>${manageLink}`,
   };
 }
-
 function whatsappEnabled() {
   return process.env.WHATSAPP_ENABLED === 'true';
 }
-
 function whatsappRecipient(value: string) {
   const recipient = value.replace(/\D/g, '');
   if (!recipient) throw new Error('ADMIN_WHATSAPP_RECIPIENT must contain a phone number');
-  return `${recipient}@c.us`;
+  return `${recipient}@s.whatsapp.net`;
 }
-
 function whatsappMessage(notification: NotificationRecord) {
-  if (notification.type !== NotificationType.BOOKING_CONFIRMED) {
+  if (notification.type !== NotificationType.BOOKING_CONFIRMED)
     throw new Error(`Unsupported WhatsApp notification type: ${notification.type}`);
-  }
   const booking = notification.booking;
   const appUrl = publicAppUrl();
   return [
@@ -192,118 +111,214 @@ function whatsappMessage(notification: NotificationRecord) {
     `Manage bookings: ${appUrl ? `${appUrl}/admin/bookings` : 'Admin bookings'}`,
   ].join('\n');
 }
-
-function r2Config() {
-  const accountId = process.env.WHATSAPP_R2_ACCOUNT_ID;
+function r2Config(): R2Config {
   const accessKeyId = process.env.WHATSAPP_R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.WHATSAPP_R2_SECRET_ACCESS_KEY;
   const bucket = process.env.WHATSAPP_R2_BUCKET;
   const endpoint = process.env.WHATSAPP_R2_ENDPOINT;
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !endpoint) {
+  if (!accessKeyId || !secretAccessKey || !bucket || !endpoint)
     throw new Error(
-      'WHATSAPP_R2_ACCOUNT_ID, WHATSAPP_R2_ACCESS_KEY_ID, WHATSAPP_R2_SECRET_ACCESS_KEY, WHATSAPP_R2_BUCKET, and WHATSAPP_R2_ENDPOINT are required when WhatsApp is enabled',
+      'WHATSAPP_R2_ACCESS_KEY_ID, WHATSAPP_R2_SECRET_ACCESS_KEY, WHATSAPP_R2_BUCKET, and WHATSAPP_R2_ENDPOINT are required when WhatsApp is enabled',
     );
-  }
-  return { accountId, accessKeyId, secretAccessKey, bucket, endpoint };
+  return { accessKeyId, secretAccessKey, bucket, endpoint };
 }
 
-function createWhatsAppClient() {
+class R2BaileysStore {
+  private readonly prefix = 'whatsapp-sessions/baileys';
+  constructor(
+    private readonly bucket: string,
+    private readonly client: S3Client,
+  ) {}
+  private key(file: string) {
+    return `${this.prefix}/${file}`;
+  }
+  private safeFilePath(folder: string, file: string) {
+    const target = path.resolve(folder, file);
+    if (target !== folder && !target.startsWith(`${folder}${path.sep}`))
+      throw new Error('Invalid R2 WhatsApp session file path');
+    return target;
+  }
+  async restore(folder: string) {
+    await mkdir(folder, { recursive: true });
+    console.log('Checking Cloudflare R2 Baileys session backup');
+    let manifest: BaileysManifest;
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: this.key('manifest.json') }),
+        { abortSignal: AbortSignal.timeout(15_000) },
+      );
+      if (!result.Body) throw new Error('R2 session manifest was empty');
+      const chunks: Buffer[] = [];
+      for await (const chunk of result.Body as Readable) chunks.push(Buffer.from(chunk));
+      manifest = JSON.parse(Buffer.concat(chunks).toString('utf8')) as BaileysManifest;
+      if (
+        !Array.isArray(manifest.files) ||
+        !manifest.files.every((file) => typeof file === 'string')
+      )
+        throw new Error('R2 session manifest is invalid');
+    } catch (error) {
+      const details = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+      if (
+        details.name === 'NoSuchKey' ||
+        details.name === 'NotFound' ||
+        details.$metadata?.httpStatusCode === 404
+      ) {
+        console.log('No Cloudflare R2 Baileys session backup found; QR login is required');
+        return false;
+      }
+      throw error;
+    }
+    await Promise.all(
+      manifest.files.map(async (file) => {
+        const result = await this.client.send(
+          new GetObjectCommand({ Bucket: this.bucket, Key: this.key(file) }),
+          { abortSignal: AbortSignal.timeout(30_000) },
+        );
+        if (!result.Body) throw new Error(`R2 session file ${file} was empty`);
+        const target = this.safeFilePath(folder, file);
+        await mkdir(path.dirname(target), { recursive: true });
+        await pipeline(result.Body as Readable, createWriteStream(target));
+      }),
+    );
+    console.log('Cloudflare R2 Baileys session backup restored');
+    return true;
+  }
+  async backup(folder: string) {
+    const files = await this.files(folder);
+    await Promise.all(
+      files.map(async (file) =>
+        this.client.send(
+          new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: this.key(file),
+            Body: await readFile(this.safeFilePath(folder, file)),
+          }),
+          { abortSignal: AbortSignal.timeout(30_000) },
+        ),
+      ),
+    );
+    await this.client.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: this.key('manifest.json'),
+        Body: JSON.stringify({ files } satisfies BaileysManifest),
+        ContentType: 'application/json',
+      }),
+      { abortSignal: AbortSignal.timeout(15_000) },
+    );
+    console.log('Baileys session backup saved to Cloudflare R2');
+  }
+  private async files(folder: string, relative = ''): Promise<string[]> {
+    const entries = await readdir(path.join(folder, relative), { withFileTypes: true });
+    const nested = await Promise.all(
+      entries.map(async (entry) => {
+        const next = path.join(relative, entry.name);
+        return entry.isDirectory() ? this.files(folder, next) : [next];
+      }),
+    );
+    return nested.flat();
+  }
+}
+
+async function createWhatsAppClient() {
   if (!whatsappEnabled()) {
     console.log('WhatsApp notifications are disabled');
     setWhatsAppQrDisabled();
-    return null;
+    return;
   }
-
   const senderNumber = process.env.WHATSAPP_SENDER_NUMBER;
   if (!senderNumber) throw new Error('WHATSAPP_SENDER_NUMBER is required when WhatsApp is enabled');
   const r2 = r2Config();
-  console.log(`Starting WhatsApp session with Cloudflare R2 bucket ${r2.bucket}`);
-  setWhatsAppQrInitializing();
-  const s3 = new S3Client({
+  const client = new S3Client({
     region: 'auto',
     endpoint: r2.endpoint,
     forcePathStyle: true,
     credentials: { accessKeyId: r2.accessKeyId, secretAccessKey: r2.secretAccessKey },
   });
-  const authDataPath = process.env.WHATSAPP_AUTH_PATH || '/tmp/whatsapp-auth';
-  const store = new R2SessionStore(r2.bucket, s3, authDataPath);
-
-  const client = new Client({
-    authStrategy: new RemoteAuth({
-      clientId: 'coach-rickie-notifications',
-      dataPath: authDataPath,
-      store: store as NonNullable<ConstructorParameters<typeof RemoteAuth>[0]>['store'],
-      backupSyncIntervalMs: 60_000,
-    }),
-    puppeteer: {
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    },
-  });
-
-  client.on('qr', (qr) => {
-    console.log(`Scan this QR code in WhatsApp Linked devices for ${senderNumber}:`);
-    qrcode.generate(qr, { small: true });
-    void QRCode.toDataURL(qr, { errorCorrectionLevel: 'M', margin: 2, width: 360 })
-      .then(setWhatsAppQr)
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
-        setWhatsAppQrError(`Could not generate the WhatsApp QR image: ${message}`);
-      });
-  });
-  client.on('disconnected', (reason) => {
-    console.error('WhatsApp session disconnected', reason);
-    setWhatsAppQrDisconnected(String(reason));
-  });
-  client.on('ready', () => {
-    console.log(`WhatsApp sender ${senderNumber} is ready`);
-    setWhatsAppQrReady();
-  });
-  client.on('remote_session_saved', () => {
-    console.log('WhatsApp session backup saved to Cloudflare R2');
-  });
-  client.on('auth_failure', (message) => {
-    console.error('WhatsApp authentication failed', message);
-    setWhatsAppQrError(`WhatsApp authentication failed: ${message}`);
-  });
-  void client.initialize().catch((error: unknown) => {
-    console.error('WhatsApp failed to initialize', error);
-    const message = error instanceof Error ? error.message : String(error);
-    setWhatsAppQrError(`WhatsApp failed to initialize: ${message}`);
-  });
-  return client;
-}
-
-async function sendWhatsApp(client: Client | null, notification: NotificationRecord) {
-  if (!client) throw new Error('WhatsApp notifications are disabled');
-  const sent = await client.sendMessage(
-    whatsappRecipient(notification.recipient),
-    whatsappMessage(notification),
+  const authFolder = process.env.WHATSAPP_AUTH_PATH || '/tmp/baileys-auth';
+  const store = new R2BaileysStore(r2.bucket, client);
+  console.log(`Starting Baileys WhatsApp session with Cloudflare R2 bucket ${r2.bucket}`);
+  setWhatsAppQrInitializing();
+  await rm(authFolder, { recursive: true, force: true });
+  await store.restore(authFolder);
+  const { state, saveCreds } = await useMultiFileAuthState(authFolder);
+  const socket = makeWASocket({ auth: state, markOnlineOnConnect: false });
+  whatsappSocket = socket;
+  const backup = () => {
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(
+      () =>
+        void store.backup(authFolder).catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error('Baileys R2 backup failed', error);
+          setWhatsAppQrError(`Baileys session backup failed: ${message}`);
+        }),
+      1_000,
+    );
+  };
+  socket.ev.on(
+    'creds.update',
+    () =>
+      void saveCreds()
+        .then(backup)
+        .catch((error: unknown) => console.error('Saving Baileys credentials failed', error)),
   );
-  return sent.id._serialized;
+  socket.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
+    if (qr) {
+      console.log(`Scan the WhatsApp QR code from the admin dashboard with ${senderNumber}`);
+      void QRCode.toDataURL(qr, { errorCorrectionLevel: 'M', margin: 2, width: 360 })
+        .then(setWhatsAppQr)
+        .catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          setWhatsAppQrError(`Could not generate the WhatsApp QR image: ${message}`);
+        });
+    }
+    if (connection === 'open') {
+      console.log(`Baileys WhatsApp sender ${senderNumber} is ready`);
+      setWhatsAppQrReady();
+      backup();
+    }
+    if (connection === 'close') {
+      const details = lastDisconnect?.error as { output?: { statusCode?: number } } | undefined;
+      if (details?.output?.statusCode === DisconnectReason.loggedOut) {
+        whatsappSocket = null;
+        setWhatsAppQrError('WhatsApp logged out. Restart the API to scan a new QR code.');
+        return;
+      }
+      setWhatsAppQrDisconnected('WhatsApp disconnected; reconnecting.');
+      clearTimeout(reconnectTimer);
+      reconnectTimer = setTimeout(
+        () =>
+          void createWhatsAppClient().catch((error: unknown) => {
+            const message = error instanceof Error ? error.message : String(error);
+            setWhatsAppQrError(`WhatsApp reconnection failed: ${message}`);
+          }),
+        5_000,
+      );
+    }
+  });
+}
+async function sendWhatsApp(notification: NotificationRecord) {
+  if (!whatsappSocket) throw new Error('WhatsApp is not connected');
+  const result = await whatsappSocket.sendMessage(whatsappRecipient(notification.recipient), {
+    text: whatsappMessage(notification),
+  });
+  if (!result?.key.id) throw new Error('WhatsApp did not return a message ID');
+  return result.key.id;
 }
 
 export async function startNotificationProcessor() {
   const redisUrl = process.env.REDIS_URL;
   const resendKey = process.env.RESEND_API_KEY;
   const emailFrom = process.env.EMAIL_FROM;
-  if (!redisUrl) throw new Error('REDIS_URL is required for the notification worker');
+  if (!redisUrl) throw new Error('REDIS_URL is required for the notification processor');
   if (!resendKey || !emailFrom)
-    throw new Error('RESEND_API_KEY and EMAIL_FROM are required for the notification worker');
-
+    throw new Error('RESEND_API_KEY and EMAIL_FROM are required for the notification processor');
   console.log('Starting notification processor');
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   const queue = new Queue<NotificationJob>(queueName, { connection });
   const resend = new Resend(resendKey);
-  const whatsapp = createWhatsAppClient();
-  whatsapp?.on('message_ack', (message: Message, ack: number) => {
-    const providerStatus = ['pending', 'sent', 'delivered', 'read', 'played'][ack] || 'sent';
-    void prisma.notification.updateMany({
-      where: { providerMessageId: message.id._serialized },
-      data: { status: NotificationStatus.SENT, providerStatus, errorMessage: null },
-    });
-  });
+  await createWhatsAppClient();
   const enqueue = (notificationId: string) =>
     queue.add(
       'deliver',
@@ -325,7 +340,6 @@ export async function startNotificationProcessor() {
     });
     await Promise.all(pending.map((notification) => enqueue(notification.id)));
   };
-
   const worker = new Worker<NotificationJob>(
     queueName,
     async (job) => {
@@ -336,9 +350,8 @@ export async function startNotificationProcessor() {
       if (!notification || notification.status === NotificationStatus.SENT) return;
       const isWhatsApp = notification.channel === NotificationChannel.WHATSAPP;
       let providerMessageId: string | undefined;
-      if (isWhatsApp) {
-        providerMessageId = await sendWhatsApp(whatsapp, notification);
-      } else {
+      if (isWhatsApp) providerMessageId = await sendWhatsApp(notification);
+      else {
         const email = emailFor(notification);
         const result = await resend.emails.send({
           from: emailFrom,
@@ -362,7 +375,6 @@ export async function startNotificationProcessor() {
     },
     { connection, concurrency: 5 },
   );
-
   worker.on('failed', (job: Job<NotificationJob> | undefined, error) => {
     if (!job) return;
     const finalAttempt = job.attemptsMade >= (job.opts.attempts || 1);
@@ -375,24 +387,27 @@ export async function startNotificationProcessor() {
       },
     });
   });
-
   await recoverPending();
-  const recoveryTimer = setInterval(() => {
-    void recoverPending().catch((error: unknown) =>
-      console.error('Notification recovery failed', error),
-    );
-  }, pollIntervalMs);
+  const recoveryTimer = setInterval(
+    () =>
+      void recoverPending().catch((error: unknown) =>
+        console.error('Notification recovery failed', error),
+      ),
+    pollIntervalMs,
+  );
   console.log('Notification processor is running');
   return async () => {
     clearInterval(recoveryTimer);
+    clearTimeout(reconnectTimer);
+    clearTimeout(backupTimer);
     await worker.close();
     await queue.close();
     await connection.quit();
-    await whatsapp?.destroy();
+    whatsappSocket?.end(undefined);
+    whatsappSocket = null;
     await prisma.$disconnect();
   };
 }
-
 async function main() {
   const shutdown = await startNotificationProcessor();
   const exit = async () => {
@@ -402,11 +417,9 @@ async function main() {
   process.once('SIGINT', () => void exit());
   process.once('SIGTERM', () => void exit());
 }
-
-if (require.main === module) {
+if (require.main === module)
   void main().catch(async (error: unknown) => {
     console.error('Notification processor failed to start', error);
     await prisma.$disconnect();
     process.exit(1);
   });
-}
