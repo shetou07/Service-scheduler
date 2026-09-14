@@ -96,9 +96,15 @@ export default function AdminOverviewPage() {
           {whatsApp.status === 'WAITING_FOR_QR' && whatsApp.qrDataUrl ? (
             <div>
               <p className="text-secondary">
-                On +250 792 831 227, open WhatsApp, choose Linked devices, then scan this code.
+                On the phone number that should send studio alerts, open WhatsApp, choose Linked
+                devices, then scan this code.
               </p>
-              <img alt="WhatsApp linked-device QR code" src={whatsApp.qrDataUrl} width={360} height={360} />
+              <img
+                alt="WhatsApp linked-device QR code"
+                src={whatsApp.qrDataUrl}
+                width={360}
+                height={360}
+              />
             </div>
           ) : whatsApp.message ? (
             <p className="form-error">{whatsApp.message}</p>
