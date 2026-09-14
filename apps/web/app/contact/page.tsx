@@ -81,6 +81,10 @@ export default function ContactPage() {
                   <a href="tel:+256765463811">+256 765 463 811</a>
                 </div>
                 <div>
+                  <span>Email</span>
+                  <a href="mailto:info@coachrickie.com">info@coachrickie.com</a>
+                </div>
+                <div>
                   <span>Location</span>
                   <p>Coach Rickie Studio</p>
                 </div>
