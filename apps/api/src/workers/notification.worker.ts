@@ -7,12 +7,7 @@ import {
 } from '@prisma/client';
 import { Resend } from 'resend';
 import nodemailer from 'nodemailer';
-import {
-  DisconnectReason,
-  makeWASocket,
-  useMultiFileAuthState,
-  type WASocket,
-} from '@whiskeysockets/baileys';
+import type { WASocket } from '@whiskeysockets/baileys';
 import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import * as QRCode from 'qrcode';
 import { createWriteStream } from 'fs';
@@ -35,10 +30,18 @@ type NotificationRecord = Prisma.NotificationGetPayload<{
 }>;
 type R2Config = { accessKeyId: string; secretAccessKey: string; bucket: string; endpoint: string };
 type BaileysManifest = { files: string[] };
+type BaileysModule = typeof import('@whiskeysockets/baileys');
 
 let whatsappSocket: WASocket | null = null;
 let reconnectTimer: NodeJS.Timeout | undefined;
 let backupTimer: NodeJS.Timeout | undefined;
+
+function loadBaileys(): Promise<BaileysModule> {
+  // Keep the ESM-only Baileys package out of Nest's CommonJS startup path.
+  return new Function('modulePath', 'return import(modulePath)')(
+    '@whiskeysockets/baileys',
+  ) as Promise<BaileysModule>;
+}
 
 function manageToken(payload: Prisma.JsonValue | null) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return undefined;
@@ -270,6 +273,7 @@ async function createWhatsAppClient() {
   setWhatsAppQrInitializing();
   await rm(authFolder, { recursive: true, force: true });
   await store.restore(authFolder);
+  const { DisconnectReason, makeWASocket, useMultiFileAuthState } = await loadBaileys();
   const { state, saveCreds } = await useMultiFileAuthState(authFolder);
   const socket = makeWASocket({ auth: state, markOnlineOnConnect: false });
   whatsappSocket = socket;
@@ -380,7 +384,22 @@ export async function deliverNotification(notificationId: string) {
 
 export async function startNotificationDelivery() {
   console.log('Starting direct notification delivery');
-  await createWhatsAppClient();
+  try {
+    await createWhatsAppClient();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('WhatsApp failed to initialize; email delivery will continue', error);
+    setWhatsAppQrError(`WhatsApp could not initialize: ${message}`);
+  }
+  const pending = await prisma.notification.findMany({
+    where: { status: NotificationStatus.PENDING },
+    select: { id: true },
+    orderBy: { createdAt: 'asc' },
+    take: 100,
+  });
+  await Promise.all(pending.map((notification) => deliverNotification(notification.id)));
+  if (pending.length)
+    console.log(`Attempted direct delivery for ${pending.length} pending notifications`);
   console.log('Direct notification delivery is ready');
   return async () => {
     clearTimeout(reconnectTimer);
