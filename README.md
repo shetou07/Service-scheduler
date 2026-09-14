@@ -11,6 +11,20 @@ Production-oriented monorepo: Next.js client portal in `apps/web`, NestJS/Prisma
 
 The seed admin credentials are configured by `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD`. Change them before any shared deployment.
 
+## Admin account changes
+
+Do not re-run the seed to change an existing production admin. Instead, add the production Neon
+`DATABASE_URL` to `apps/api/.env` locally and run one of these commands from the repository root:
+
+```powershell
+npm.cmd run admin:manage --workspace=@coach-rickie/api -- create --name "New Admin" --email admin@example.com --confirm-production
+npm.cmd run admin:manage --workspace=@coach-rickie/api -- update --email current@example.com --name "Updated Name" --new-email new@example.com --confirm-production
+npm.cmd run admin:manage --workspace=@coach-rickie/api -- reset-password --email admin@example.com --confirm-production
+```
+
+The command prompts for a password privately; never add passwords to the command, repository, or
+environment variables. The `--confirm-production` flag is required for every database change.
+
 ## Email delivery
 
 Set `GMAIL_SMTP_USER` to the company Gmail address and `GMAIL_SMTP_APP_PASSWORD` to a Google App Password to send booking, cancellation, rescheduling, and contact-form emails through Gmail. Gmail is used whenever both values are set; otherwise the app uses Resend (`RESEND_API_KEY` and `EMAIL_FROM`). Enable two-step verification on the Gmail account before creating its App Password. Never use or store the normal Gmail password.
