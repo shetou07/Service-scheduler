@@ -29,7 +29,7 @@ export default function CoachGymRecommendationPage() {
       const response = await fetch(`${api}/recommendations`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, email: form.email.trim() || undefined }),
       });
       const payload = await response.json();
       if (!response.ok)
