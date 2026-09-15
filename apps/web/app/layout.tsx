@@ -7,6 +7,9 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Coach Rickie | Book a session',
   description: 'Performance training scheduling',
+  icons: {
+    icon: '/icon.svg',
+  },
 };
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
