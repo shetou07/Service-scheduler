@@ -298,6 +298,59 @@ select {
   background-repeat: no-repeat;
   background-size: cover;
 }
+.about-photo {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.about-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.about-photo--hero {
+  min-height: 460px;
+}
+.about-photo--hero img {
+  object-position: center 18%;
+}
+.about-story {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+.about-copy {
+  display: grid;
+  gap: 1.15rem;
+}
+.about-copy .text-secondary {
+  max-width: 68ch;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+.about-recognition {
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+}
+.about-photo--support {
+  min-height: 390px;
+}
+.about-photo--support img {
+  object-position: center 20%;
+}
+.about-recognition .section-title {
+  margin-bottom: 1.25rem;
+}
+.about-vision {
+  max-width: 100%;
+}
+.about-vision__closing {
+  color: var(--heading) !important;
+  font-weight: 700;
+}
 .hero h1 {
   margin: 0.7rem 0 1.25rem;
   color: var(--heading);
@@ -982,7 +1035,9 @@ select {
 @media (max-width: 700px) {
   .feature-split,
   .contact-grid,
-  .about-hero__content {
+  .about-hero__content,
+  .about-story,
+  .about-recognition {
     grid-template-columns: 1fr;
   }
   .about-hero__content {
@@ -991,6 +1046,12 @@ select {
   }
   .about-hero__image {
     min-height: 300px;
+  }
+  .about-photo--hero {
+    min-height: 360px;
+  }
+  .about-photo--support {
+    min-height: 330px;
   }
   .feature-stamp {
     min-height: 170px;
