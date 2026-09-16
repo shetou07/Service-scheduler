@@ -698,6 +698,88 @@ select {
   font-size: 0.82rem;
   line-height: 1.55;
 }
+.smash-packages {
+  margin-top: 1.5rem;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-panel);
+  padding: 1.25rem;
+}
+.smash-packages h3 {
+  margin: 0 0 0.9rem;
+  color: var(--heading);
+  font-size: 1.15rem;
+  text-transform: uppercase;
+}
+.smash-packages__table-wrap {
+  overflow-x: auto;
+}
+.smash-packages table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.smash-packages th,
+.smash-packages td {
+  border-bottom: 1px solid var(--accent-border);
+  padding: 0.7rem 0.55rem;
+}
+.smash-packages thead th {
+  color: var(--accent);
+  font: 700 0.7rem monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.smash-packages tbody th {
+  color: var(--heading);
+  font-size: 0.9rem;
+}
+.smash-packages td {
+  color: var(--secondary);
+  font-weight: 700;
+}
+.smash-packages__definitions {
+  display: grid;
+  gap: 0.7rem;
+  margin: 1rem 0 0;
+}
+.smash-packages__definitions div {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  gap: 0.5rem;
+}
+.smash-packages__definitions dt {
+  color: var(--heading);
+  font-weight: 700;
+}
+.smash-packages__definitions dd {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+.smash-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-self: start;
+}
+.smash-gallery__image {
+  min-height: 360px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--accent-border);
+  background: var(--surface);
+}
+.smash-gallery__image:nth-child(2) {
+  margin-top: 3rem;
+}
+.smash-gallery__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
 .feature-stamp {
   display: flex;
   min-height: 260px;
@@ -1056,6 +1138,12 @@ select {
   .feature-stamp {
     min-height: 170px;
   }
+  .smash-gallery__image {
+    min-height: 300px;
+  }
+  .smash-gallery__image:nth-child(2) {
+    margin-top: 1.5rem;
+  }
 }
 @media (max-width: 700px) {
   .hero {
@@ -1098,6 +1186,12 @@ select {
   .service-grid,
   .booking-service-grid {
     grid-template-columns: 1fr;
+  }
+  .smash-gallery {
+    grid-template-columns: 1fr;
+  }
+  .smash-gallery__image:nth-child(2) {
+    margin-top: 0;
   }
   .section {
     padding: 3.5rem 0;

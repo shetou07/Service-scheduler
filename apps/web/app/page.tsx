@@ -161,6 +161,47 @@ export default function Home() {
                 A controlled, coach-supervised environment for powerful release. Protective
                 equipment and safe impact tools are prepared before every booked session.
               </p>
+              <div className="smash-packages" aria-labelledby="smash-packages-title">
+                <h3 id="smash-packages-title">Smash Room packages</h3>
+                <div className="smash-packages__table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Package</th>
+                        <th scope="col">Quick</th>
+                        <th scope="col">Hard</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row">Solo Smash</th>
+                        <td>50K</td>
+                        <td>80K</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Dual Smash</th>
+                        <td>80K</td>
+                        <td>120K</td>
+                      </tr>
+                      <tr>
+                        <th scope="row">Team Smash</th>
+                        <td>150K</td>
+                        <td>250K</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <dl className="smash-packages__definitions">
+                  <div>
+                    <dt>Quick</dt>
+                    <dd>Basic breakables like glass, bottles, plates, and more.</dd>
+                  </div>
+                  <div>
+                    <dt>Hard</dt>
+                    <dd>Comes with appliances and electronics.</dd>
+                  </div>
+                </dl>
+              </div>
               <aside className="service-disclaimer" role="note">
                 <strong>Important disclaimer</strong>
                 <p>
@@ -179,10 +220,20 @@ export default function Home() {
                 Book Smash Room
               </Link>
             </div>
-            <aside className="feature-stamp cut-corner">
-              <span>SMR</span>
-              <small>Controlled. Safe. Cathartic.</small>
-            </aside>
+            <div className="smash-gallery" aria-label="Rickie Smash Room experiences">
+              <figure className="smash-gallery__image cut-corner">
+                <img
+                  src="/images/smash-room-safety.jpg"
+                  alt="A Rickie Smash Room guest wearing protective equipment in the controlled activity space"
+                />
+              </figure>
+              <figure className="smash-gallery__image cut-corner">
+                <img
+                  src="/images/smash-room-team.jpg"
+                  alt="Coach Rickie and a guest in the Rickie Smash Room"
+                />
+              </figure>
+            </div>
           </div>
         </section>
         <section id="coach" className="section split-section">
