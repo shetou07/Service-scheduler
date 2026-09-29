@@ -18,6 +18,9 @@ const serviceImages: Record<string, string> = {
   'Smash Room': '/images/smash-room-logo.jpg',
   'Team Building': '/images/team-building.jfif',
 };
+const isSmashRoom = (service: Service) => service.name.trim().toLowerCase() === 'smash room';
+const prioritiseServices = (items: Service[]) =>
+  [...items].sort((left, right) => Number(isSmashRoom(right)) - Number(isSmashRoom(left)));
 
 export default function Home() {
   const [services, setServices] = useState<Service[]>([]);
@@ -78,8 +81,9 @@ export default function Home() {
             <div className="eyebrow">Training disciplines</div>
             <h2 className="section-title">What we offer</h2>
             <div className="service-grid">
-              <Link className="service-card cut-corner" href="/coach-gym-recommendation">
+              <Link className="service-card service-card--featured cut-corner" href="/coach-gym-recommendation">
                 <div>
+                  <div className="service-card__badge">Featured service</div>
                   <div className="eyebrow">Personalised guidance</div>
                   <h3>Coach and Gym recommendation</h3>
                   <p className="text-secondary">
@@ -89,9 +93,9 @@ export default function Home() {
                 </div>
                 <div className="service-card__price">Request a recommendation →</div>
               </Link>
-              {services.map((service) => (
+              {prioritiseServices(services).map((service) => (
                 <Link
-                  className="service-card cut-corner"
+                  className={`service-card cut-corner ${isSmashRoom(service) ? 'service-card--featured' : ''}`}
                   key={service.id}
                   href={`/book?serviceId=${service.id}`}
                 >
@@ -103,6 +107,7 @@ export default function Home() {
                     </div>
                   )}
                   <div>
+                    {isSmashRoom(service) && <div className="service-card__badge">Featured service</div>}
                     <div className="eyebrow">{service.durationMinutes} min</div>
                     <h3>{service.name}</h3>
                     <p className="text-secondary">{service.description}</p>

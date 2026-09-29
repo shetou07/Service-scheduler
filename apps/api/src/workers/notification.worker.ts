@@ -35,6 +35,16 @@ type BaileysModule = typeof import('@whiskeysockets/baileys');
 let whatsappSocket: WASocket | null = null;
 let reconnectTimer: NodeJS.Timeout | undefined;
 let backupTimer: NodeJS.Timeout | undefined;
+let reconnectAttempts = 0;
+
+// R2 is contacted while restoring credentials on every new Baileys socket. A
+// 15-second deadline is too aggressive on a cold Render instance and turns a
+// temporary network delay into a permanently failed WhatsApp connection.
+const R2_RESTORE_TIMEOUT_MS = 60_000;
+const R2_FILE_TIMEOUT_MS = 90_000;
+const R2_BACKUP_TIMEOUT_MS = 60_000;
+const RECONNECT_INITIAL_DELAY_MS = 5_000;
+const RECONNECT_MAX_DELAY_MS = 60_000;
 
 function loadBaileys(): Promise<BaileysModule> {
   // Keep the ESM-only Baileys package out of Nest's CommonJS startup path.
@@ -155,6 +165,42 @@ function r2Config(): R2Config {
   return { accessKeyId, secretAccessKey, bucket, endpoint };
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isTemporaryConnectionError(error: unknown) {
+  const message = errorMessage(error).toLowerCase();
+  return /request aborted|abort|timeout|timed out|econn|enet|ehost|socket hang up|network/.test(
+    message,
+  );
+}
+
+function scheduleWhatsAppReconnect(error?: unknown) {
+  clearTimeout(reconnectTimer);
+  const delay = Math.min(
+    RECONNECT_INITIAL_DELAY_MS * 2 ** reconnectAttempts,
+    RECONNECT_MAX_DELAY_MS,
+  );
+  reconnectAttempts += 1;
+  const reason = error
+    ? ` (${errorMessage(error)}).`
+    : '.';
+  setWhatsAppQrDisconnected(
+    `WhatsApp disconnected${reason} Retrying in ${Math.ceil(delay / 1_000)} seconds.`,
+  );
+  reconnectTimer = setTimeout(() => {
+    void createWhatsAppClient().catch((reconnectError: unknown) => {
+      console.error('WhatsApp reconnection failed', reconnectError);
+      if (isTemporaryConnectionError(reconnectError)) {
+        scheduleWhatsAppReconnect(reconnectError);
+        return;
+      }
+      setWhatsAppQrError(`WhatsApp reconnection failed: ${errorMessage(reconnectError)}`);
+    });
+  }, delay);
+}
+
 class R2BaileysStore {
   private readonly prefix = 'whatsapp-sessions/baileys';
   constructor(
@@ -177,7 +223,7 @@ class R2BaileysStore {
     try {
       const result = await this.client.send(
         new GetObjectCommand({ Bucket: this.bucket, Key: this.key('manifest.json') }),
-        { abortSignal: AbortSignal.timeout(15_000) },
+        { abortSignal: AbortSignal.timeout(R2_RESTORE_TIMEOUT_MS) },
       );
       if (!result.Body) throw new Error('R2 session manifest was empty');
       const chunks: Buffer[] = [];
@@ -204,7 +250,7 @@ class R2BaileysStore {
       manifest.files.map(async (file) => {
         const result = await this.client.send(
           new GetObjectCommand({ Bucket: this.bucket, Key: this.key(file) }),
-          { abortSignal: AbortSignal.timeout(30_000) },
+          { abortSignal: AbortSignal.timeout(R2_FILE_TIMEOUT_MS) },
         );
         if (!result.Body) throw new Error(`R2 session file ${file} was empty`);
         const target = this.safeFilePath(folder, file);
@@ -225,7 +271,7 @@ class R2BaileysStore {
             Key: this.key(file),
             Body: await readFile(this.safeFilePath(folder, file)),
           }),
-          { abortSignal: AbortSignal.timeout(30_000) },
+          { abortSignal: AbortSignal.timeout(R2_BACKUP_TIMEOUT_MS) },
         ),
       ),
     );
@@ -236,7 +282,7 @@ class R2BaileysStore {
         Body: JSON.stringify({ files } satisfies BaileysManifest),
         ContentType: 'application/json',
       }),
-      { abortSignal: AbortSignal.timeout(15_000) },
+      { abortSignal: AbortSignal.timeout(R2_RESTORE_TIMEOUT_MS) },
     );
     console.log('Baileys session backup saved to Cloudflare R2');
   }
@@ -307,27 +353,23 @@ async function createWhatsAppClient() {
         });
     }
     if (connection === 'open') {
+      if (whatsappSocket !== socket) return;
       console.log(`Baileys WhatsApp sender ${senderNumber} is ready`);
+      reconnectAttempts = 0;
       setWhatsAppQrReady();
       backup();
     }
     if (connection === 'close') {
+      // Ignore events emitted by a socket that a later reconnect has replaced.
+      if (whatsappSocket !== socket) return;
       const details = lastDisconnect?.error as { output?: { statusCode?: number } } | undefined;
       if (details?.output?.statusCode === DisconnectReason.loggedOut) {
         whatsappSocket = null;
         setWhatsAppQrError('WhatsApp logged out. Restart the API to scan a new QR code.');
         return;
       }
-      setWhatsAppQrDisconnected('WhatsApp disconnected; reconnecting.');
-      clearTimeout(reconnectTimer);
-      reconnectTimer = setTimeout(
-        () =>
-          void createWhatsAppClient().catch((error: unknown) => {
-            const message = error instanceof Error ? error.message : String(error);
-            setWhatsAppQrError(`WhatsApp reconnection failed: ${message}`);
-          }),
-        5_000,
-      );
+      whatsappSocket = null;
+      scheduleWhatsAppReconnect();
     }
   });
 }

@@ -12,6 +12,9 @@ type Service = {
   durationMinutes: number;
   priceMinor: number;
 };
+const isSmashRoom = (service: Service) => service.name.trim().toLowerCase() === 'smash room';
+const prioritiseServices = (items: Service[]) =>
+  [...items].sort((left, right) => Number(isSmashRoom(right)) - Number(isSmashRoom(left)));
 type Slot = { id: string; startAt: string; endAt: string; capacity: number; bookedCount: number };
 type Booking = { bookingReference: string };
 type Details = { fullName: string; email: string; phone: string };
@@ -150,9 +153,20 @@ function BookingFlow() {
         <section>
           <h2>Select a discipline</h2>
           <div className="service-grid booking-service-grid">
-            {services.map((service) => (
+            <Link className="service-card service-card--featured cut-corner" href="/coach-gym-recommendation">
+              <div>
+                <div className="service-card__badge">Featured service</div>
+                <div className="eyebrow">Personalised guidance</div>
+                <h3>Coach and Gym recommendation</h3>
+                <p className="text-secondary">
+                  Not sure which service fits? Get matched with the right coach, gym, or training plan.
+                </p>
+              </div>
+              <div className="service-card__price">Request a recommendation →</div>
+            </Link>
+            {prioritiseServices(services).map((service) => (
               <button
-                className={`service-card cut-corner ${service.id === serviceId ? 'service-card--selected' : ''}`}
+                className={`service-card cut-corner ${isSmashRoom(service) ? 'service-card--featured' : ''} ${service.id === serviceId ? 'service-card--selected' : ''}`}
                 key={service.id}
                 onClick={() => {
                   setServiceId(service.id);
@@ -160,6 +174,7 @@ function BookingFlow() {
                 }}
               >
                 <div>
+                  {isSmashRoom(service) && <div className="service-card__badge">Featured service</div>}
                   <div className="eyebrow">{service.durationMinutes} min</div>
                   <h3>{service.name}</h3>
                   <p className="text-secondary">{service.description}</p>
