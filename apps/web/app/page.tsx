@@ -24,6 +24,7 @@ const prioritiseServices = (items: Service[]) =>
 
 export default function Home() {
   const [services, setServices] = useState<Service[]>([]);
+  const smashRoom = services.find(isSmashRoom);
   useEffect(() => {
     fetch(`${api}/services`)
       .then((response) => response.json())
@@ -74,6 +75,28 @@ export default function Home() {
                 Explore services
               </a>
             </div>
+          </div>
+        </section>
+        <section className="promo-section" aria-label="Featured offer">
+          <div className="container">
+            <Link
+              className="promo-slider cut-corner"
+              href={smashRoom ? `/book?serviceId=${smashRoom.id}` : '#services'}
+            >
+              <img
+                src="/images/smash-room-packages.jpg"
+                alt="Rickie's Smash Room packages: solo, dual, and team Smash Room sessions"
+              />
+              <div className="promo-slider__content">
+                <span className="service-card__badge">Featured offer</span>
+                <p className="eyebrow">Rickie's Smash Room</p>
+                <h2>Break it. Release it. Feel better.</h2>
+                <span className="button cut-corner-sm">View Smash Room sessions →</span>
+              </div>
+              <span className="promo-slider__position" aria-hidden="true">
+                01 / 01
+              </span>
+            </Link>
           </div>
         </section>
         <section id="services" className="section">

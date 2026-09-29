@@ -369,6 +369,51 @@ select {
   gap: 0.8rem;
   margin-top: 2rem;
 }
+.promo-section {
+  padding: clamp(2rem, 5vw, 4rem) 0 0;
+}
+.promo-slider {
+  position: relative;
+  display: grid;
+  min-height: min(720px, 72vw);
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--accent);
+  background: #120900;
+  color: var(--heading);
+  text-decoration: none;
+}
+.promo-slider img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.promo-slider__content {
+  position: absolute;
+  inset: auto 1.25rem 1.25rem;
+  max-width: 400px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border-left: 3px solid var(--accent);
+  padding: 1rem;
+}
+.promo-slider__content h2 {
+  margin: 0.3rem 0 1rem;
+  color: var(--heading);
+  font-size: clamp(1.45rem, 3vw, 2.5rem);
+  text-transform: uppercase;
+}
+.promo-slider__position {
+  position: absolute;
+  right: 1.25rem;
+  top: 1.25rem;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  padding: 0.4rem 0.55rem;
+  font: 700 0.65rem monospace;
+  letter-spacing: 0.08em;
+}
+.promo-slider:hover {
+  border-color: var(--secondary);
+}
 .section-title {
   margin: 0.45rem 0 2rem;
   color: var(--heading);
@@ -1202,6 +1247,26 @@ select {
   }
 }
 @media (max-width: 560px) {
+  .promo-section {
+    padding-top: 1.5rem;
+  }
+  .promo-slider {
+    min-height: 0;
+  }
+  .promo-slider__content {
+    right: 0.7rem;
+    bottom: 0.7rem;
+    left: 0.7rem;
+    max-width: none;
+    padding: 0.75rem;
+  }
+  .promo-slider__content h2 {
+    font-size: 1.2rem;
+  }
+  .promo-slider__position {
+    top: 0.7rem;
+    right: 0.7rem;
+  }
   .service-grid,
   .booking-service-grid {
     grid-template-columns: 1fr;
